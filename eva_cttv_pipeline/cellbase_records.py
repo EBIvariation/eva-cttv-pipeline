@@ -31,7 +31,7 @@ class CellbaseRecords:
 
         attempts = 0
         curr_response = None
-        while attempts < 5:
+        while attempts < 3:
             try:
                 answer = urllib.request.urlopen(url)
                 curr_response = json.load(reader(answer))['response'][0]
