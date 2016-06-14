@@ -166,6 +166,8 @@ class ClinvarRecord(UserDict):
                 # First trait name in the list will always be the "Preferred" one
                 if name['elementValue']['type'] == 'Preferred':
                     trait_list[-1] = [name['elementValue']['value']] + trait_list[-1]
+                elif name['elementValue']['type'] in ["EFO URL", "EFO id", "EFO name"]:
+                    continue  # if the trait name not originally from clinvar
                 else:
                     trait_list[-1].append(name['elementValue']['value'])
 
