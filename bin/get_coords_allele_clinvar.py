@@ -54,9 +54,11 @@ def make_output_lines(record):
         var_id = "rs{}".format(record[6])
     else:
         var_id = "{}_{}_{}_{}_{}".format(chrom, start, end, ref, alt)
+    clinvar_id = record[8]
+    clinvar_gene = record[3]
     allele = "{}/{}".format(ref, alt)
     output_lines = []
-    output_line = '\t'.join([chrom, start, end, allele, "+", var_id, "\n"])
+    output_line = '\t'.join([chrom, start, end, allele, "+", var_id, clinvar_id, clinvar_gene]) + "\n"
     output_lines.append(output_line)
     return output_lines
 
@@ -112,7 +114,6 @@ def post_process(outfilepath):
 
 
 def main():
-    global COUNTER_BAD_RS_OR_AL
 
     args = ArgParser(sys.argv)
 
