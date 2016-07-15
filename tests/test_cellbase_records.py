@@ -1,8 +1,11 @@
+import os
 import unittest
 
 from eva_cttv_pipeline import cellbase_records, config
 
 
+@unittest.skipIf("TRAVIS" in os.environ and os.environ["TRAVIS"] == "true",
+                 "Skipping this test on Travis CI.")
 class CellbaseRecordsTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
