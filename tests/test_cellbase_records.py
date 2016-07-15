@@ -8,7 +8,6 @@ class CellbaseRecordsTest(unittest.TestCase):
     def setUpClass(cls):
         cls.cb_records = cellbase_records.CellbaseRecords()
 
-    # @unittest.skip("skipping")
     def test_get_curr_result_list(self):
         curr_result_list = self.cb_records._CellbaseRecords__get_curr_result_list()
         self.assertEqual(len(curr_result_list), config.BATCH_SIZE)

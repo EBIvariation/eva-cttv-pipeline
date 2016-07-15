@@ -1,7 +1,5 @@
 import codecs
 import json
-import sys
-import urllib.error
 import urllib.request
 
 from eva_cttv_pipeline import config
@@ -28,21 +26,9 @@ class CellbaseRecords:
         reader = codecs.getreader("utf-8")
         url = 'http://{}/cellbase/webservices/rest/v3/hsapiens/feature/clinical/' \
               'all?source=clinvar&skip={}&limit={}'.format(config.HOST, self.skip, self.limit)
-
-        attempts = 0
-        curr_response = None
-        while attempts < 3:
-            try:
-                answer = urllib.request.urlopen(url)
-                curr_response = json.load(reader(answer))['response'][0]
-            except urllib.error.HTTPError as e:
-                attempts += 1
-
-        if curr_response:
-            return curr_response
-        else:
-            print("Response from url {} failed".format(url))
-            sys.exit(1)
+        answer = urllib.request.urlopen(url)
+        curr_response = json.load(reader(answer))['response'][0]
+        return curr_response
 
     def __get_curr_result_list(self):
         curr_response = self.__get_curr_response()
