@@ -216,6 +216,9 @@ def clinvar_to_evidence_strings(allowed_clinical_significance, mappings):
         for ensembl_gene_id, trait, allele_origin \
                 in itertools.product(traits, clinvar_record.allele_origins):
 
+            print(ensembl_gene_id, trait, allele_origin)
+            sys.exit(1)
+
             if allele_origin not in ('germline', 'somatic'):
                 report.n_unrecognised_allele_origin[allele_origin] += 1
                 continue
@@ -270,26 +273,26 @@ def skip_record(clinvar_record, cellbase_record, allowed_clinical_significance, 
     if clinvar_record.clinical_significance not in allowed_clinical_significance:
         if clinvar_record.nsv is not None:
             counters["n_nsv_skipped_clin_sig"] += 1
-        print("Not in allowed. Clinical significance: %s. Allowed clincal significances: %s." %
-              (clinvar_record.clinical_significance, allowed_clinical_significance))
+        # print("Not in allowed. Clinical significance: %s. Allowed clincal significances: %s." %
+              # (clinvar_record.clinical_significance, allowed_clinical_significance))
         return True
 
     if cellbase_record['reference'] == cellbase_record['alternate']:
         counters["n_same_ref_alt"] += 1
         if clinvar_record.nsv is not None:
             counters["n_nsv_skipped_wrong_ref_alt"] += 1
-            print("ref != alt. ref: %s alt: %s" % (cellbase_record['reference'],
-                                                   cellbase_record['alternate']))
+            # print("ref != alt. ref: %s alt: %s" % (cellbase_record['reference'],
+                                                   # cellbase_record['alternate']))
         return True
 
     if clinvar_record.rs is None:
         counters["n_pathogenic_no_rs"] += 1
-        print("rs is none. clinvar acc: %s" % clinvar_record.accession)
+        # print("rs is none. clinvar acc: %s" % clinvar_record.accession)
         return True
 
     if clinvar_record.consequence_type is None:
         counters["no_variant_to_ensg_mapping"] += 1
-        print("con type is none. clinvar acc: %s" % clinvar_record.accession)
+        # print("con type is none. clinvar acc: %s" % clinvar_record.accession)
         return True
 
     return False
@@ -357,19 +360,16 @@ def load_efo_mapping(efo_mapping_file, ignore_terms_file=None, adapt_terms_file=
     ignore_terms = get_terms_from_file(ignore_terms_file)
     adapt_terms = get_terms_from_file(adapt_terms_file)
 
-    print('Loading phenotypes to EFO mapping...')
-    efo_mapping_read_book = xlrd.open_workbook(efo_mapping_file, formatting_info=True)
-    efo_mapping_read_sheet = efo_mapping_read_book.sheet_by_index(0)
     trait_2_efo = {}
     unavailable_efo = {}
     n_efo_mappings = 0
-    for i in range(1, efo_mapping_read_sheet.nrows):
-        if efo_mapping_read_sheet.cell_value(rowx=i, colx=1) != '':
-            valid_efo, urls_to_adapt = get_urls(
-                efo_mapping_read_sheet.cell_value(rowx=i, colx=1).split(', '),
-                ignore_terms, adapt_terms
-            )
-            clinvar_trait = efo_mapping_read_sheet.cell_value(rowx=i, colx=0).lower()
+
+    with open(efo_mapping_file, "rt") as f:
+        for line in f:
+            line_list = line.rstrip().split("\t")
+            valid_efo, urls_to_adapt = get_urls(line_list[3], ignore_terms, adapt_terms)
+            clinvar_trait = line_list[2]
+
             if len(valid_efo) > 0:
                 trait_2_efo[clinvar_trait] = valid_efo
                 n_efo_mappings += 1

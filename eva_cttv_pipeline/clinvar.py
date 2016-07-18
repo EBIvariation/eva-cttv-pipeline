@@ -1,4 +1,5 @@
 import json
+import gzip
 import sys
 import time
 import urllib.error
@@ -18,7 +19,7 @@ def get_rcv_to_rsnsv_mapping(variant_summary_file):
     rcv_to_nsv = {}
 
     print('Loading mapping RCV->rs/nsv')
-    fdr = open(variant_summary_file, "r")
+    fdr = gzip.open(variant_summary_file, "rt")
     fdr.readline()
     for line in fdr:
         parts = line.split('\t')

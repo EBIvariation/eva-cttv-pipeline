@@ -1,4 +1,4 @@
-
+import gzip
 
 __author__ = 'Javier Lopez: javild@gmail.com'
 
@@ -16,7 +16,7 @@ def process_consequence_type_file_tsv(snp_2_gene_filepath):
     consequence_type_dict = {}
     one_rs_multiple_genes = set()
 
-    with open(snp_2_gene_filepath, "rt") as snp_2_gene_file:
+    with gzip.open(snp_2_gene_filepath, "rt") as snp_2_gene_file:
         for line in snp_2_gene_file:
             line = line.rstrip()
             line_list = line.split("\t")
