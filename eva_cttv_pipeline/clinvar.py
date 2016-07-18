@@ -255,8 +255,11 @@ class ClinvarRecord(UserDict):
     def __get_main_consequence_types(self, consequence_type_dict, rcv_to_rs):
 
         new_rs_id = self.__get_rs(rcv_to_rs)
-        if new_rs_id is not None and (new_rs_id in consequence_type_dict):
+
+        if new_rs_id is not None and new_rs_id in consequence_type_dict:
             return consequence_type_dict[new_rs_id]
+        elif self.accession in consequence_type_dict:
+            return consequence_type_dict[self.accession]
         else:
             return None
 
