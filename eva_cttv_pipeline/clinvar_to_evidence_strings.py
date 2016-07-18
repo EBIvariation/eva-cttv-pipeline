@@ -8,7 +8,7 @@ import jsonschema
 import xlrd
 
 from eva_cttv_pipeline import cellbase_records, efo_term, consequence_type, config, \
-    evidence_strings, clinvar
+    evidence_strings, clinvar, utilities
 
 
 __author__ = 'Javier Lopez: javild@gmail.com'
@@ -126,23 +126,23 @@ class Report:
         write_string_list_to_file(self.nsv_list, dir_out + '/' + config.NSV_LIST_FILE)
 
         # Contains traits without a mapping in Gary's xls
-        with open(dir_out + '/' + config.UNMAPPED_TRAITS_FILE_NAME, 'w') as fdw:
+        with utilities.open_file(dir_out + '/' + config.UNMAPPED_TRAITS_FILE_NAME, 'w') as fdw:
             fdw.write('Trait\tCount\n')
             for trait_list in self.unmapped_traits:
                 fdw.write(str(trait_list.encode('utf8')) + '\t' +
                           str(self.unmapped_traits[trait_list]) + '\n')
 
         # Contains urls provided by Gary which are not yet included within EFO
-        with open(dir_out + '/' + config.UNAVAILABLE_EFO_FILE_NAME, 'w') as fdw:
+        with utilities.open_file(dir_out + '/' + config.UNAVAILABLE_EFO_FILE_NAME, 'w') as fdw:
             fdw.write('Trait\tCount\n')
             for url in self.unavailable_efo_dict:
                 fdw.write(url.encode('utf8') + '\t' + str(self.unavailable_efo_dict[url]) + '\n')
 
-        with open(dir_out + '/' + config.EVIDENCE_STRINGS_FILE_NAME, 'w') as fdw:
+        with utilities.open_file(dir_out + '/' + config.EVIDENCE_STRINGS_FILE_NAME, 'w') as fdw:
             for evidence_string in self.evidence_string_list:
                 fdw.write(json.dumps(evidence_string) + '\n')
 
-        with open(dir_out + '/' + config.EVIDENCE_RECORDS_FILE_NAME, 'w') as fdw:
+        with utilities.open_file(dir_out + '/' + config.EVIDENCE_RECORDS_FILE_NAME, 'w') as fdw:
             for evidence_record in self.evidence_list:
                 fdw.write('\t'.join(evidence_record) + '\n')
 
@@ -323,7 +323,7 @@ def create_trait(trait_counter, trait_list, trait_2_efo):
 
 
 def write_string_list_to_file(string_list, filename):
-    with open(filename, 'w') as out_file:
+    with utilities.open_file(filename, 'w') as out_file:
         out_file.write('\n'.join(string_list))
 
 
@@ -365,7 +365,7 @@ def load_efo_mapping(efo_mapping_file, ignore_terms_file=None, adapt_terms_file=
     unavailable_efo = {}
     n_efo_mappings = 0
 
-    with open(efo_mapping_file, "rt") as f:
+    with utilities.open_file(efo_mapping_file, "rt") as f:
         for line in f:
             line_list = line.rstrip().split("\t")
             valid_efo, urls_to_adapt = get_urls([line_list[3]], ignore_terms, adapt_terms)
@@ -421,7 +421,7 @@ def get_urls(url_list, ignore_terms, adapt_terms):
 def get_terms_from_file(terms_file_path):
     if terms_file_path is not None:
         print('Loading list of terms...')
-        with open(terms_file_path, 'r') as terms_file:
+        with utilities.open_file(terms_file_path, 'r') as terms_file:
             terms_list = [line.rstrip() for line in terms_file]
         print(str(len(terms_file_path)) + ' terms found at ' + terms_file_path)
     else:

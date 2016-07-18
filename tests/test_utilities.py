@@ -23,7 +23,7 @@ class CopyAndOverwriteTest(unittest.TestCase):
         os.makedirs(self.test_dir_b)
         self.test_file_a = os.path.join(self.test_dir_a, "test.txt")
         self.test_string = "this is a test string"
-        with open(self.test_file_a, "wt") as f:
+        with utilities.open_file(self.test_file_a, "wt") as f:
             f.write(self.test_string)
 
     def tearDown(self):
@@ -33,10 +33,10 @@ class CopyAndOverwriteTest(unittest.TestCase):
 
     def test_existing(self):
         test_file_b = os.path.join(self.test_dir_b, "test.txt")
-        with open(test_file_b, "wt") as f:
+        with utilities.open_file(test_file_b, "wt") as f:
             f.write("hello world")
         utilities.copy_and_overwrite(self.test_dir_a, self.test_dir_b)
-        with open(test_file_b, "rt") as f:
+        with utilities.open_file(test_file_b, "rt") as f:
             contents = f.read()
         self.assertEqual(contents, self.test_string)
 
@@ -50,7 +50,7 @@ class CopyDirTest(unittest.TestCase):
         os.makedirs(self.test_dir_b)
         self.test_file_a = os.path.join(self.test_dir_a, "test.txt")
         self.test_string = "this is a test string"
-        with open(self.test_file_a, "wt") as f:
+        with utilities.open_file(self.test_file_a, "wt") as f:
             f.write(self.test_string)
 
     def tearDown(self):
@@ -59,16 +59,16 @@ class CopyDirTest(unittest.TestCase):
 
     def test_existing(self):
         test_file_b = os.path.join(self.test_dir_b, "test.txt")
-        with open(test_file_b, "wt") as f:
+        with utilities.open_file(test_file_b, "wt") as f:
             f.write("hello world")
         utilities.copy_dir(self.test_dir_a, self.test_dir_b)
-        with open(test_file_b, "rt") as f:
+        with utilities.open_file(test_file_b, "rt") as f:
             contents = f.read()
         self.assertEqual(contents, self.test_string)
 
     def test_nonexisting(self):
         utilities.copy_dir(self.test_dir_a, self.test_dir_c)
-        with open(os.path.join(self.test_dir_c, "test.txt"), "rt") as f:
+        with utilities.open_file(os.path.join(self.test_dir_c, "test.txt"), "rt") as f:
             contents = f.read()
         self.assertEqual(contents, self.test_string)
         shutil.rmtree(self.test_dir_c)

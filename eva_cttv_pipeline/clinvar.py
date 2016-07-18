@@ -9,6 +9,8 @@ from datetime import datetime
 import http.client
 from collections import UserDict
 
+from eva_cttv_pipeline import utilities
+
 
 __author__ = 'Javier Lopez: javild@gmail.com'
 
@@ -19,7 +21,7 @@ def get_rcv_to_rsnsv_mapping(variant_summary_file):
     rcv_to_nsv = {}
 
     print('Loading mapping RCV->rs/nsv')
-    fdr = gzip.open(variant_summary_file, "rt")
+    fdr = utilities.open_file(variant_summary_file, "rt")
     fdr.readline()
     for line in fdr:
         parts = line.split('\t')

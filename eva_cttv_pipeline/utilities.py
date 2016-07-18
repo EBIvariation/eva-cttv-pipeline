@@ -1,5 +1,6 @@
 import argparse
 import errno
+import gzip
 import subprocess
 import sys
 import importlib
@@ -9,6 +10,19 @@ import os
 import shutil
 
 import eva_cttv_pipeline.config as config
+
+
+def open_file(file_path, mode=None):
+    if file_path.endswith(".gz"):
+        if mode:
+            return gzip.open(file_path, mode)
+        else:
+            return gzip.open(file_path)
+    else:
+        if mode:
+            return open(file_path, mode)
+        else:
+            return open(file_path)
 
 
 def get_resource_file(package, resource):
