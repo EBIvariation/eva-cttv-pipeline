@@ -199,8 +199,19 @@ def clinvar_to_evidence_strings(allowed_clinical_significance, mappings):
         report.counters["n_nsvs"] += (clinvar_record.nsv is not None)
         append_nsv(report.nsv_list, clinvar_record)
 
+        if clinvar_record.rs == "rs397704705":
+            print(clinvar_record.traits)
+
+        if clinvar_record.rs == "rs606231450":
+            print(clinvar_record.traits)
+
         if skip_record(clinvar_record,
                        cellbase_record, allowed_clinical_significance, report.counters):
+            if clinvar_record.rs == "rs397704705":
+                print(clinvar_record.traits)
+
+            if clinvar_record.rs == "rs606231450":
+                print(clinvar_record.traits)
             continue
 
         report.counters["n_multiple_allele_origin"] += (len(clinvar_record.allele_origins) > 1)
@@ -215,10 +226,6 @@ def clinvar_to_evidence_strings(allowed_clinical_significance, mappings):
 
         for ensembl_gene_id, trait, allele_origin \
                 in itertools.product(clinvar_record.consequence_type.ensembl_gene_ids, traits, clinvar_record.allele_origins):
-
-            # print(ensembl_gene_id, trait, allele_origin)
-            # print(clinvar_record.__dict__)
-            # sys.exit(1)
 
             if allele_origin not in ('germline', 'somatic'):
                 report.n_unrecognised_allele_origin[allele_origin] += 1
@@ -286,10 +293,10 @@ def skip_record(clinvar_record, cellbase_record, allowed_clinical_significance, 
                                                    # cellbase_record['alternate']))
         return True
 
-    if clinvar_record.rs is None:
-        counters["n_pathogenic_no_rs"] += 1
-        # print("rs is none. clinvar acc: %s" % clinvar_record.accession)
-        return True
+    # if clinvar_record.rs is None:
+    #     counters["n_pathogenic_no_rs"] += 1
+    #     # print("rs is none. clinvar acc: %s" % clinvar_record.accession)
+    #     return True
 
     if clinvar_record.consequence_type is None:
         counters["no_variant_to_ensg_mapping"] += 1
@@ -369,7 +376,7 @@ def load_efo_mapping(efo_mapping_file, ignore_terms_file=None, adapt_terms_file=
         for line in f:
             line_list = line.rstrip().split("\t")
             valid_efo, urls_to_adapt = get_urls([line_list[3]], ignore_terms, adapt_terms)
-            clinvar_trait = line_list[2]
+            clinvar_trait = line_list[4]
 
             if len(valid_efo) > 0:
                 trait_2_efo[clinvar_trait] = valid_efo
