@@ -101,7 +101,9 @@ class SoTerm(object):
                               'DNAseI_hypersensitive_site': 685,
                               'polypeptide_variation_site': 336,
                               'start_lost': 2012,
-                              'protein_altering_variant': 1818}
+                              'protein_altering_variant': 1818,
+                              'gene_fusion': 1565,
+                              'gene_variant': 1564}
 
     ranked_so_names_list = ['transcript_ablation',
                             'splice_acceptor_variant',
