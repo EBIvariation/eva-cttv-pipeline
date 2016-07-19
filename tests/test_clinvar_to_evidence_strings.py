@@ -7,10 +7,10 @@ from tests import test_clinvar
 
 def _get_mappings():
     efo_mapping_file = os.path.join(os.path.dirname(__file__), 'resources',
-                                    'ClinVar_Traits_EFO_090915.xls')
+                                    'one_mapped_url_per_clinvar_trat.tsv')
     ignore_file = os.path.join(os.path.dirname(__file__), 'resources', 'ignore_file.txt')
     snp_2_gene_file = os.path.join(os.path.dirname(__file__), 'resources',
-                                   'snp2gene_assignment_jul2016_extract.tsv.gz')
+                                   'snp2gene_assignment_jul2016_extract.tsv')
     variant_summary_file = os.path.join(os.path.dirname(__file__), 'resources',
                                         'variant_summary_2016-05_test_extract.txt')
 
@@ -29,40 +29,40 @@ class GetMappingsTest(unittest.TestCase):
         cls.mappings = MAPPINGS
 
     def test_efo_mapping(self):
-        self.assertEqual(len(self.mappings.trait_2_efo), 3528)
+        self.assertEqual(len(self.mappings.trait_2_efo), 4470)
         self.assertEqual(len(self.mappings.unavailable_efo_dict), 0)
 
-        self.assertEqual(self.mappings.trait_2_efo["deafness, autosomal recessive 22"],
-                         ['http://www.ebi.ac.uk/efo/EFO_0001063'])
-        self.assertEqual(self.mappings.trait_2_efo["oculocutaneous albinism type 1b"],
-                         ['http://www.orpha.net/ORDO/Orphanet_79434'])
+        self.assertEqual(self.mappings.trait_2_efo["2,4-dienoyl-coa reductase deficiency"],
+                         ['http://purl.obolibrary.org/obo/HP_0002161'])
+        self.assertEqual(self.mappings.trait_2_efo["2-methyl-3-hydroxybutyric aciduria"],
+                         ['http://www.orpha.net/ORDO/Orphanet_391417'])
         self.assertEqual(
-            self.mappings.trait_2_efo["merosin deficient congenital muscular dystrophy"],
-            ['http://www.orpha.net/ORDO/Orphanet_258'])
+            self.mappings.trait_2_efo["3 beta-hydroxysteroid dehydrogenase deficiency"],
+            ['http://www.orpha.net/ORDO/Orphanet_90791'])
 
     def test_consequence_type_dict(self):
-        self.assertEqual(len(self.mappings.consequence_type_dict), 54)
+        self.assertEqual(len(self.mappings.consequence_type_dict), 16)
 
-        self.assertTrue("rs724159824" in self.mappings.consequence_type_dict)
-        self.assertTrue("rs34296458" in self.mappings.consequence_type_dict)
-        self.assertTrue("rs199476100" in self.mappings.consequence_type_dict)
-        self.assertTrue("rs80360485" in self.mappings.consequence_type_dict)
+        self.assertTrue("rs121908485" in self.mappings.consequence_type_dict)
+        self.assertTrue("rs121912888" in self.mappings.consequence_type_dict)
+        self.assertTrue("rs137852558" in self.mappings.consequence_type_dict)
+        self.assertTrue("rs137853008" in self.mappings.consequence_type_dict)
 
         self.assertFalse("rs0" in self.mappings.consequence_type_dict)
         self.assertFalse("rs5" in self.mappings.consequence_type_dict)
         self.assertFalse("rs9" in self.mappings.consequence_type_dict)
 
     def test_rcv_to_rs_nsv(self):
-        self.assertEqual(len(self.mappings.rcv_to_rs), 18)
+        self.assertEqual(len(self.mappings.rcv_to_rs), 17)
         self.assertEqual(len(self.mappings.rcv_to_nsv), 5)
 
         self.assertEqual(self.mappings.rcv_to_nsv["RCV000020147"], "nsv1067916")
         self.assertEqual(self.mappings.rcv_to_nsv["RCV000004182"], "nsv1067860")
         self.assertEqual(self.mappings.rcv_to_nsv["RCV000004183"], "nsv1067861")
 
-        self.assertEqual(self.mappings.rcv_to_rs["RCV000061038"], "rs140870493")
-        self.assertEqual(self.mappings.rcv_to_rs["RCV000038449"], "rs397517136")
-        self.assertEqual(self.mappings.rcv_to_rs["RCV000126020"], "rs75686037")
+        self.assertEqual(self.mappings.rcv_to_rs["RCV000000012"], "rs397704705")
+        self.assertEqual(self.mappings.rcv_to_rs["RCV000000204"], "rs121965059")
+        self.assertEqual(self.mappings.rcv_to_rs["RCV000000381"], "rs137854556")
 
 
 class CreateTraitTest(unittest.TestCase):
@@ -75,7 +75,7 @@ class CreateTraitTest(unittest.TestCase):
         self.assertEqual(self.trait.clinvar_trait_list, ['Ciliary dyskinesia, primary, 7'])
 
     def test_efo_list(self):
-        self.assertEqual(self.trait.efo_list, ['http://www.ebi.ac.uk/efo/EFO_0003900'])
+        self.assertEqual(self.trait.efo_list, ['http://www.orpha.net/ORDO/Orphanet_244'])
 
     def test_return_none(self):
         none_trait = \
@@ -93,8 +93,8 @@ class SkipRecordTest(unittest.TestCase):
                      ["not provided"], report.counters]
         # allowed clin sig changed to just "non provided" to match that in the test record
 
-    def test_return_false(self):
-        self.assertFalse(clinvar_to_evidence_strings.skip_record(*self.args))
+    def test_return_true(self):
+        self.assertTrue(clinvar_to_evidence_strings.skip_record(*self.args))
 
     def test_ref_eq_alt(self):
         self.args[1] = {"reference": "A", "alternate": "A"}
@@ -122,10 +122,10 @@ class LoadEfoMappingTest(unittest.TestCase):
             clinvar_to_evidence_strings.load_efo_mapping(efo_file, ignore_terms_file=ignore_file)
 
     def test_just_mapping_trait_2_efo(self):
-        self.assertEqual(len(self.trait_2_efo), 3819)
+        self.assertEqual(len(self.trait_2_efo), 4554)
 
     def test_w_ignore_trait_2_efo(self):
-        self.assertEqual(len(self.trait_2_efo_w_ignore), 3528)
+        self.assertEqual(len(self.trait_2_efo_w_ignore), 4470)
 
 
 class GetUnmappedUrlTest(unittest.TestCase):
