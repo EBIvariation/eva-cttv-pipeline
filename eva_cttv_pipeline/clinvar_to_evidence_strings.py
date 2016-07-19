@@ -199,19 +199,8 @@ def clinvar_to_evidence_strings(allowed_clinical_significance, mappings):
         report.counters["n_nsvs"] += (clinvar_record.nsv is not None)
         append_nsv(report.nsv_list, clinvar_record)
 
-        if clinvar_record.rs == "rs397704705":
-            print(clinvar_record.traits)
-
-        if clinvar_record.rs == "rs606231450":
-            print(clinvar_record.traits)
-
         if skip_record(clinvar_record,
                        cellbase_record, allowed_clinical_significance, report.counters):
-            if clinvar_record.rs == "rs397704705":
-                print(clinvar_record.traits)
-
-            if clinvar_record.rs == "rs606231450":
-                print(clinvar_record.traits)
             continue
 
         report.counters["n_multiple_allele_origin"] += (len(clinvar_record.allele_origins) > 1)
