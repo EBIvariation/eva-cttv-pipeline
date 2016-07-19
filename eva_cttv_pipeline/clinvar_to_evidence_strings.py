@@ -361,7 +361,7 @@ def load_efo_mapping(efo_mapping_file, ignore_terms_file=None, adapt_terms_file=
     unavailable_efo = {}
     n_efo_mappings = 0
 
-    with utilities.open_file(efo_mapping_file, "rt") as f:
+    with utilities.open_file(efo_mapping_file) as f:
         for line in f:
             line_list = line.rstrip().split("\t")
             valid_efo, urls_to_adapt = get_urls([line_list[1]], ignore_terms, adapt_terms)
