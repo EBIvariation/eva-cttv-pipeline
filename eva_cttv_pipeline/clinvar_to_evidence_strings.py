@@ -306,22 +306,22 @@ def skip_record(clinvar_record, cellbase_record, allowed_clinical_significance, 
     return False
 
 
-def create_traits(clinvar_traits, trait_2_efo, report):
+def create_traits(clinvar_traits, trait_2_efo_dict, report):
     traits = []
-    for trait_counter, trait_list in enumerate(clinvar_traits):
-        new_trait = create_trait(trait_counter, trait_list, trait_2_efo)
+    for trait_counter, name_list in enumerate(clinvar_traits):
+        new_trait = create_trait(trait_counter, name_list, trait_2_efo_dict)
         if new_trait:
             traits.append(new_trait)
         else:
             report.counters["n_missed_strings_unmapped_traits"] += 1
-            report.unmapped_traits[trait_list[0]] += 1
+            report.unmapped_traits[name_list[0]] += 1
     return traits
 
 
-def create_trait(trait_counter, trait_list, trait_2_efo):
+def create_trait(trait_counter, name_list, trait_2_efo_dict):
     trait = SimpleNamespace()
     trait.trait_counter = trait_counter
-    trait.clinvar_trait_list, trait.efo_list = map_efo(trait_2_efo, trait_list)
+    trait.clinvar_trait_list, trait.efo_list = map_efo(trait_2_efo_dict, name_list)
     # Only ClinVar records associated to a
     # trait with mapped EFO term will generate evidence_strings
     if len(trait.efo_list) == 0:
@@ -341,18 +341,18 @@ def append_nsv(nsv_list, clinvar_record):
     return nsv_list
 
 
-def map_efo(trait_2_efo, trait_list):
+def map_efo(trait_2_efo, name_list):
     efo_list = []
     trait_list_to_return = []
-    trait_string = trait_list[0].lower()
+    trait_string = name_list[0].lower()
     if trait_string in trait_2_efo:
         for efo_trait in trait_2_efo[trait_string]:
             # First element in trait_list mus always be the "Preferred" trait name
             if efo_trait not in efo_list:
-                trait_list_to_return.append(trait_list[0])
+                trait_list_to_return.append(name_list[0])
                 efo_list.append(efo_trait)
     else:
-        for trait in trait_list[1:]:
+        for trait in name_list[1:]:
             trait_string = trait.lower()
             if trait_string in trait_2_efo:
                 for efo_trait in trait_2_efo[trait_string]:
@@ -376,12 +376,12 @@ def load_efo_mapping(efo_mapping_file, ignore_terms_file=None, adapt_terms_file=
         for line in f:
             line_list = line.rstrip().split("\t")
             valid_efo, urls_to_adapt = get_urls([line_list[3]], ignore_terms, adapt_terms)
-            clinvar_trait = line_list[4]
+            clinvar_trait = line_list[4].lower()
 
             if len(valid_efo) > 0:
                 trait_2_efo[clinvar_trait] = valid_efo
                 n_efo_mappings += 1
-            elif len(urls_to_adapt) > 0:
+            if len(urls_to_adapt) > 0:
                 trait_2_efo[clinvar_trait] = []
                 for url in urls_to_adapt:
                     if url not in unavailable_efo:
