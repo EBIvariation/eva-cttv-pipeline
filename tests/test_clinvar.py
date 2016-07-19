@@ -18,54 +18,60 @@ class TestClinvarRecord(unittest.TestCase):
         cls.consequence_type_dict = CT.process_consequence_type_file(test_config.snp_2_gene_file)
 
     def test_gene_id(self):
-        self.assertEqual(self.test_clinvar_record.gene_id, "NM_000548")
+        self.assertEqual(self.test_clinvar_record.gene_id, "NM_152443")
 
     def test_ensembl_id(self):
-        self.assertEqual(self.test_clinvar_record.ensembl_id, "ENSG00000008710")
+        self.assertEqual(self.test_clinvar_record.ensembl_id, "ENSG00000072121")
 
     def test_date(self):
         self.assertEqual(self.test_clinvar_record.date,
-                         datetime.fromtimestamp(1412982000000/1000).isoformat())
+                         datetime.fromtimestamp(1414627200000/1000).isoformat())
 
     def test_score(self):
-        self.assertEqual(self.test_clinvar_record.score, None)
+        self.assertEqual(self.test_clinvar_record.score, 1)
 
     def test_acc(self):
-        self.assertEqual(self.test_clinvar_record.accession, "RCV000055062")
+        self.assertEqual(self.test_clinvar_record.accession, "RCV000002127")
 
     def test_traits(self):
-        self.assertEqual(self.test_clinvar_record.traits, [['Tuberous sclerosis syndrome']])
+        self.assertEqual(self.test_clinvar_record.traits, [['Leber congenital amaurosis 13',
+                                                            'Leber Congenital Amaurosis']])
 
     def test_trait_pubmed_refs(self):
-        self.assertEqual(self.test_clinvar_record.trait_pubmed_refs, [[20301399]])
+        self.assertEqual(self.test_clinvar_record.trait_pubmed_refs, [[20301475, 20301590]])
 
     def test_observed_pubmed_refs(self):
-        self.assertEqual(self.test_clinvar_record.observed_pubmed_refs, [])
+        self.assertEqual(self.test_clinvar_record.observed_pubmed_refs, [15258582, 15322982])
 
     def test_measure_set_pubmed_refs(self):
         self.assertEqual(self.test_clinvar_record.measure_set_pubmed_refs, [])
 
     def test_hgvs(self):
         self.assertEqual(self.test_clinvar_record.hgvs,
-                         ['NM_000548.3:c.*154dup', 'NM_001009944.2:c.*963dupC',
-                          'NG_005895.1:g.44459dupG', 'NC_000016.10:g.2088764dupG',
-                          'NC_000016.9:g.2138765dupG', 'p.(=)'])
+                         ['NM_152443.2:c.677A>G',
+                          'NG_008321.1:g.32324A>G',
+                          'NC_000014.9:g.67729209A>G',
+                          'NC_000014.8:g.68195926A>G',
+                          'NP_689656.2:p.Tyr226Cys'])
 
     def test_clinical_significance(self):
-        self.assertEqual(self.test_clinvar_record.clinical_significance, "not provided")
+        self.assertEqual(self.test_clinvar_record.clinical_significance, "pathogenic")
 
     def test_get_rs(self):
-        self.assertEqual(self.test_clinvar_record._ClinvarRecord__get_rs(self.rcv_to_rs), "rs397514891")
+        self.assertEqual(self.test_clinvar_record._ClinvarRecord__get_rs(self.rcv_to_rs), "rs28940313")
         self.assertEqual(self.test_clinvar_record._ClinvarRecord__get_rs({}), None)
 
     def test_get_nsv(self):
         self.assertEqual(self.test_clinvar_record._ClinvarRecord__get_nsv(self.rcv_to_nsv), None)
-        self.assertEqual(self.test_clinvar_record._ClinvarRecord__get_nsv({"RCV000055062": "nsv123test"}),
+        self.assertEqual(self.test_clinvar_record._ClinvarRecord__get_nsv({"RCV000002127": "nsv123test"}),
                          "nsv123test")
 
     def test___get_main_consequence_types(self):
-        test_consequence_type = CT.ConsequenceType(ensembl_gene_ids=["ENSG00000008710"],
-                                                   so_names=["3_prime_UTR_variant"])
+        test_consequence_type = CT.ConsequenceType(ensembl_gene_ids=["ENSG00000139988"],
+                                                   so_names=["sequence_variant"])
+
+        # print([so_name.__dict__ for so_name in self.consequence_type_dict["rs28940313"].so_terms])
+        # print(self.rcv_to_rs)
 
         self.assertEqual(
             self.test_clinvar_record._ClinvarRecord__get_main_consequence_types(
@@ -76,7 +82,7 @@ class TestClinvarRecord(unittest.TestCase):
             None)
 
     def test_variant_type(self):
-        self.assertEqual(self.test_clinvar_record.variant_type, "Duplication")
+        self.assertEqual(self.test_clinvar_record.variant_type, "single nucleotide variant")
 
     def test_allele_origins(self):
         self.assertEqual(self.test_clinvar_record.allele_origins, ['germline'])
@@ -102,601 +108,588 @@ def get_test_record():
     test_record = clinvar.ClinvarRecord(test_clinvar_to_evidence_strings.MAPPINGS,
         {
   "recordStatus": "current",
-  "title": "NM_000548.3(TSC2):c.*154dup AND Tuberous sclerosis syndrome",
-  "referenceClinVarAssertion": {
-    "clinVarAccession": {
-      "acc": "RCV000055062",
-      "version": 1,
-      "type": "RCV",
-      "dateUpdated": 1412982000000
-    },
-    "recordStatus": "current",
-    "clinicalSignificance": {
-      "reviewStatus": "NOT_CLASSIFIED_BY_SUBMITTER",
-      "description": "not provided"
-    },
-    "assertion": {
-      "type": "VARIATION_TO_DISEASE"
-    },
-    "observedIn": [
-      {
-        "sample": {
-          "origin": "germline",
-          "species": {
-            "value": "human",
-            "taxonomyId": 9606
-          },
-          "affectedStatus": "yes"
-        },
-        "method": [
+  "title": "NM_152443.2(RDH12):c.677A>G (p.Tyr226Cys) AND Leber congenital amaurosis 13",
+  "clinVarAssertion": [
+    {
+      "measureSet": {
+        "type": "Variant",
+        "measure": [
           {
-            "methodType": "LITERATURE_ONLY"
-          }
-        ],
-        "observedData": [
-          {
-            "attribute": {
-              "integerValue": 1,
-              "type": "VariantAlleles"
-            },
-            "id": 3619513
+            "type": "Variation",
+            "measureRelationship": [
+              {
+                "type": "variant in gene",
+                "symbol": [
+                  {
+                    "elementValue": {
+                      "type": "Preferred",
+                      "value": "RDH12"
+                    }
+                  }
+                ]
+              }
+            ],
+            "name": [
+              {
+                "elementValue": {
+                  "type": "Preferred",
+                  "value": "RDH12, TYR226CYS"
+                }
+              }
+            ],
+            "xref": [
+              {
+                "db": "OMIM",
+                "type": "Allelic variant",
+                "status": "CURRENT",
+                "id": "608830.0001"
+              }
+            ],
+            "attributeSet": [
+              {
+                "attribute": {
+                  "type": "NonHGVS",
+                  "value": "TYR226CYS"
+                }
+              }
+            ]
           }
         ]
-      }
-    ],
-    "measureSet": {
-      "measure": [
+      },
+      "clinVarAccession": {
+        "type": "SCV",
+        "version": 1,
+        "acc": "SCV000022285",
+        "dateUpdated": 1414627200000,
+        "orgID": 3
+      },
+      "assertion": {
+        "type": "variation to disease"
+      },
+      "clinicalSignificance": {
+        "dateLastEvaluated": 1354060800000,
+        "description": [
+          "Pathogenic"
+        ]
+      },
+      "recordStatus": "current",
+      "id": 22285,
+      "observedIn": [
         {
-          "name": [
-            {
-              "elementValue": {
-                "value": "NM_000548.3(TSC2):c.*154dup",
-                "type": "Preferred"
-              }
-            }
-          ],
-          "attributeSet": [
-            {
-              "attribute": {
-                "value": "NM_000548.3:c.*154dup",
-                "type": "HGVS, coding, RefSeq",
-                "change": "c.*154dup"
-              }
+          "sample": {
+            "affectedStatus": "not provided",
+            "species": {
+              "value": "human"
             },
+            "origin": "germline"
+          },
+          "observedData": [
             {
+              "citation": [
+                {
+                  "id": {
+                    "value": "15258582",
+                    "source": "PubMed"
+                  }
+                }
+              ],
               "attribute": {
-                "value": "NM_001009944.2:c.*963dupC",
-                "type": "HGVS, coding, RefSeq",
-                "change": "c.*963dupC"
-              }
-            },
-            {
-              "attribute": {
-                "value": "NG_005895.1:g.44459dupG",
-                "type": "HGVS, genomic, RefSeqGene",
-                "change": "g.44459dupG"
-              }
-            },
-            {
-              "attribute": {
-                "value": "NC_000016.10:g.2088764dupG",
-                "integerValue": 38,
-                "type": "HGVS, genomic, top level",
-                "change": "g.2088764dupG"
-              }
-            },
-            {
-              "attribute": {
-                "value": "NC_000016.9:g.2138765dupG",
-                "integerValue": 37,
-                "type": "HGVS, genomic, top level, previous",
-                "change": "g.2138765dupG"
-              }
-            },
-            {
-              "attribute": {
-                "value": "p.(=)",
-                "type": "HGVS, non-validated"
-              }
-            },
-            {
-              "attribute": {
-                "value": "Exon 41",
-                "type": "Location"
-              }
-            },
-            {
-              "attribute": {
-                "value": "3 prime UTR variant",
-                "type": "MolecularConsequence"
+                "type": "Description",
+                "value": "In affected members of 3 consanguineous Austrian kindreds with Leber congenital amaurosis-13 (612712), Janecke et al. (2004) identified homozygosity for a 677A-G transition in exon 6 of the RDH12 gene, resulting in a tyr226-to-cys (Y226C) substitution. The same mutation was identified in 2 Austrian individuals with sporadic LCA13. Janecke et al. (2004) demonstrated that, when expressed in COS-7 cells, the cys226 variant had diminished activity in interconverting isomers of retinol and retinal."
               },
               "xref": [
                 {
-                  "db": "Sequence Ontology",
-                  "id": "SO:0001624",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "RefSeq",
-                  "id": "NM_001009944.2:c.*962_*963insC",
-                  "status": "CURRENT"
+                  "db": "OMIM",
+                  "type": "MIM",
+                  "status": "CURRENT",
+                  "id": "612712"
                 }
               ]
             },
             {
-              "attribute": {
-                "value": "500B downstream variant",
-                "type": "MolecularConsequence"
-              },
-              "xref": [
+              "citation": [
                 {
-                  "db": "Sequence Ontology",
-                  "id": "SO:0001634",
-                  "status": "CURRENT"
+                  "id": {
+                    "value": "15322982",
+                    "source": "PubMed"
+                  }
+                }
+              ],
+              "attribute": {
+                "type": "Description",
+                "value": "In affected members of a French family with LCA, Perrault et al. (2004) identified the Y226C mutation in compound heterozygous state with a 523T-C transition in exon 5 of the RDH12 gene, resulting in a ser175-to-pro substitution (S175P; 608830.0011)."
+              }
+            }
+          ],
+          "method": [
+            {
+              "methodType": "LITERATURE_ONLY"
+            }
+          ]
+        }
+      ],
+      "traitSet": {
+        "type": "Disease",
+        "trait": [
+          {
+            "type": "Disease",
+            "name": [
+              {
+                "elementValue": {
+                  "type": "Preferred",
+                  "value": "LEBER CONGENITAL AMAUROSIS 13"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "clinVarSubmissionID": {
+        "submitterDate": 1354060800000,
+        "localKey": "608830.0001_LEBER CONGENITAL AMAUROSIS 13",
+        "submitter": "OMIM",
+        "title": "RDH12, TYR226CYS_LEBER CONGENITAL AMAUROSIS 13"
+      },
+      "externalID": {
+        "db": "OMIM",
+        "type": "Allelic variant",
+        "status": "CURRENT",
+        "id": "608830.0001"
+      }
+    }
+  ],
+  "referenceClinVarAssertion": {
+    "dateCreated": 1344812400000,
+    "measureSet": {
+      "type": "Variant",
+      "measure": [
+        {
+          "sequenceLocation": [
+            {
+              "start": 68195926,
+              "alternateAllele": "G",
+              "variantLength": 1,
+              "chr": "14",
+              "accession": "NC_000014.8",
+              "stop": 68195926,
+              "assembly": "GRCh37",
+              "referenceAllele": "A"
+            },
+            {
+              "start": 67729209,
+              "alternateAllele": "G",
+              "variantLength": 1,
+              "chr": "14",
+              "accession": "NC_000014.9",
+              "stop": 67729209,
+              "assembly": "GRCh38",
+              "referenceAllele": "A"
+            }
+          ],
+          "type": "single nucleotide variant",
+          "name": [
+            {
+              "elementValue": {
+                "type": "Preferred",
+                "value": "NM_152443.2(RDH12):c.677A>G (p.Tyr226Cys)"
+              }
+            }
+          ],
+          "xref": [
+            {
+              "db": "OMIM",
+              "type": "Allelic variant",
+              "status": "CURRENT",
+              "id": "608830.0001"
+            },
+            {
+              "db": "dbSNP",
+              "type": "rs",
+              "status": "CURRENT",
+              "id": "28940313"
+            }
+          ],
+          "measureRelationship": [
+            {
+              "sequenceLocation": [
+                {
+                  "start": 68213236,
+                  "chr": "14",
+                  "accession": "NC_000014.8",
+                  "stop": 68283305,
+                  "assembly": "GRCh37",
+                  "strand": "-"
                 },
                 {
-                  "db": "RefSeq",
-                  "id": "NM_000548.3:c.*154_*155insG",
-                  "status": "CURRENT"
+                  "start": 67728891,
+                  "chr": "14",
+                  "accession": "NC_000014.9",
+                  "stop": 67816589,
+                  "assembly": "GRCh38",
+                  "strand": "-"
+                }
+              ],
+              "type": "variant in gene",
+              "name": [
+                {
+                  "elementValue": {
+                    "type": "Preferred",
+                    "value": "zinc finger, FYVE domain containing 26"
+                  }
+                }
+              ],
+              "xref": [
+                {
+                  "db": "Gene",
+                  "status": "CURRENT",
+                  "id": "23503"
+                },
+                {
+                  "db": "OMIM",
+                  "type": "MIM",
+                  "status": "CURRENT",
+                  "id": "612012"
+                }
+              ],
+              "symbol": [
+                {
+                  "elementValue": {
+                    "type": "Preferred",
+                    "value": "ZFYVE26"
+                  }
+                }
+              ]
+            },
+            {
+              "sequenceLocation": [
+                {
+                  "start": 68168602,
+                  "chr": "14",
+                  "accession": "NC_000014.8",
+                  "stop": 68201167,
+                  "assembly": "GRCh37",
+                  "strand": "+"
+                },
+                {
+                  "start": 67701885,
+                  "chr": "14",
+                  "accession": "NC_000014.9",
+                  "stop": 67734450,
+                  "assembly": "GRCh38",
+                  "strand": "+"
+                }
+              ],
+              "type": "variant in gene",
+              "name": [
+                {
+                  "elementValue": {
+                    "type": "Preferred",
+                    "value": "retinol dehydrogenase 12 (all-trans/9-cis/11-cis)"
+                  }
+                }
+              ],
+              "xref": [
+                {
+                  "db": "Gene",
+                  "status": "CURRENT",
+                  "id": "145226"
+                },
+                {
+                  "db": "OMIM",
+                  "type": "MIM",
+                  "status": "CURRENT",
+                  "id": "608830"
+                }
+              ],
+              "symbol": [
+                {
+                  "elementValue": {
+                    "type": "Preferred",
+                    "value": "RDH12"
+                  }
                 }
               ]
             }
           ],
           "cytogeneticLocation": [
-            "16p13.3"
+            "14q24.1"
           ],
-          "sequenceLocation": [
+          "attributeSet": [
             {
-              "assembly": "GRCh37",
-              "chr": "16",
-              "accession": "NC_000016.9",
-              "start": 2138765,
-              "stop": 2138765,
-              "variantLength": 2,
-              "referenceAllele": "G",
-              "alternateAllele": "GG"
+              "attribute": {
+                "type": "HGVS, coding, RefSeq",
+                "value": "NM_152443.2:c.677A>G",
+                "change": "c.677A>G"
+              }
             },
             {
-              "assembly": "GRCh38",
-              "chr": "16",
-              "accession": "NC_000016.10",
-              "start": 2088764,
-              "stop": 2088764,
-              "variantLength": 2,
-              "referenceAllele": "G",
-              "alternateAllele": "GG"
-            }
-          ],
-          "measureRelationship": [
+              "attribute": {
+                "type": "HGVS, genomic, RefSeqGene",
+                "value": "NG_008321.1:g.32324A>G",
+                "change": "g.32324A>G"
+              }
+            },
             {
-              "name": [
-                {
-                  "elementValue": {
-                    "value": "polycystic kidney disease 1 (autosomal dominant)",
-                    "type": "Preferred"
-                  }
-                }
-              ],
-              "symbol": [
-                {
-                  "elementValue": {
-                    "value": "PKD1",
-                    "type": "Preferred"
-                  }
-                }
-              ],
-              "attributeSet": [
-                {
-                  "attribute": {
-                    "value": "Sufficient evidence for dosage pathogenicity",
-                    "dateValue": 1329868800000,
-                    "type": "Haploinsufficiency"
-                  },
-                  "citation": [
-                    {
-                      "url": "http://www.ncbi.nlm.nih.gov/projects/dbvar/ISCA/isca_gene.cgi?sym=PKD1"
-                    }
-                  ]
-                },
-                {
-                  "attribute": {
-                    "value": "No evidence available",
-                    "dateValue": 1329868800000,
-                    "type": "Triplosensitivity"
-                  },
-                  "citation": [
-                    {
-                      "url": "http://www.ncbi.nlm.nih.gov/projects/dbvar/ISCA/isca_gene.cgi?sym=PKD1"
-                    }
-                  ]
-                }
-              ],
-              "sequenceLocation": [
-                {
-                  "assembly": "GRCh37",
-                  "chr": "16",
-                  "accession": "NC_000016.9",
-                  "start": 2138710,
-                  "stop": 2185898,
-                  "strand": "-"
-                },
-                {
-                  "assembly": "GRCh38",
-                  "chr": "16",
-                  "accession": "NC_000016.10",
-                  "start": 2088707,
-                  "stop": 2135897,
-                  "strand": "-"
-                }
-              ],
-              "type": "variant in gene",
+              "attribute": {
+                "type": "HGVS, genomic, top level",
+                "value": "NC_000014.9:g.67729209A>G",
+                "integerValue": 38,
+                "change": "g.67729209A>G"
+              }
+            },
+            {
+              "attribute": {
+                "type": "HGVS, genomic, top level, previous",
+                "value": "NC_000014.8:g.68195926A>G",
+                "integerValue": 37,
+                "change": "g.68195926A>G"
+              }
+            },
+            {
+              "attribute": {
+                "type": "HGVS, protein, RefSeq",
+                "value": "NP_689656.2:p.Tyr226Cys",
+                "change": "p.Tyr226Cys"
+              },
               "xref": [
                 {
-                  "db": "Gene",
-                  "id": "5310",
-                  "status": "CURRENT"
-                },
-                {
-                  "db": "OMIM",
-                  "id": "601313",
-                  "type": "MIM",
-                  "status": "CURRENT"
+                  "db": "dbSNP",
+                  "type": "rs",
+                  "status": "CURRENT",
+                  "id": "28940313"
                 }
               ]
             },
             {
-              "name": [
-                {
-                  "elementValue": {
-                    "value": "tuberous sclerosis 2",
-                    "type": "Preferred"
-                  }
-                }
-              ],
-              "symbol": [
-                {
-                  "elementValue": {
-                    "value": "TSC2",
-                    "type": "Preferred"
-                  }
-                }
-              ],
-              "attributeSet": [
-                {
-                  "attribute": {
-                    "value": "Sufficient evidence for dosage pathogenicity",
-                    "dateValue": 1329868800000,
-                    "type": "Haploinsufficiency"
-                  },
-                  "citation": [
-                    {
-                      "url": "http://www.ncbi.nlm.nih.gov/projects/dbvar/ISCA/isca_gene.cgi?sym=TSC2"
-                    }
-                  ]
-                },
-                {
-                  "attribute": {
-                    "value": "No evidence available",
-                    "dateValue": 1329868800000,
-                    "type": "Triplosensitivity"
-                  },
-                  "citation": [
-                    {
-                      "url": "http://www.ncbi.nlm.nih.gov/projects/dbvar/ISCA/isca_gene.cgi?sym=TSC2"
-                    }
-                  ]
-                }
-              ],
-              "sequenceLocation": [
-                {
-                  "assembly": "GRCh37",
-                  "chr": "16",
-                  "accession": "NC_000016.9",
-                  "start": 2097989,
-                  "stop": 2138712,
-                  "strand": "+"
-                },
-                {
-                  "assembly": "GRCh38",
-                  "chr": "16",
-                  "accession": "NC_000016.10",
-                  "start": 2047801,
-                  "stop": 2088711,
-                  "strand": "+"
-                }
-              ],
-              "comment": [
-                {
-                  "value": "This gene is cited in the ACMG recommendations of 2013 (PubMed 23788249) for reporting incidental findings in exons.",
-                  "dataSource": "NCBI curation"
-                }
-              ],
-              "type": "variant in gene",
+              "attribute": {
+                "type": "MolecularConsequence",
+                "value": "missense variant"
+              },
               "xref": [
                 {
-                  "db": "Gene",
-                  "id": "7249",
-                  "status": "CURRENT"
+                  "db": "Sequence Ontology",
+                  "status": "CURRENT",
+                  "id": "SO:0001583"
                 },
                 {
+                  "db": "RefSeq",
+                  "status": "CURRENT",
+                  "id": "NM_152443.2:c.677A>G"
+                }
+              ]
+            },
+            {
+              "attribute": {
+                "type": "ProteinChange1LetterCode",
+                "value": "Y226C"
+              },
+              "xref": [
+                {
                   "db": "OMIM",
-                  "id": "191092",
-                  "type": "MIM",
-                  "status": "CURRENT"
+                  "type": "Allelic variant",
+                  "status": "CURRENT",
+                  "id": "608830.0001"
+                }
+              ]
+            },
+            {
+              "attribute": {
+                "type": "ProteinChange3LetterCode",
+                "value": "TYR226CYS"
+              },
+              "xref": [
+                {
+                  "db": "OMIM",
+                  "type": "Allelic variant",
+                  "status": "CURRENT",
+                  "id": "608830.0001"
                 }
               ]
             }
           ],
-          "type": "Duplication",
-          "id": 75791,
-          "xref": [
-            {
-              "db": "Tuberous sclerosis database (TSC2)",
-              "id": "TSC2_02318",
-              "status": "CURRENT"
-            },
-            {
-              "db": "dbSNP",
-              "id": "397514891",
-              "type": "rs",
-              "status": "CURRENT"
-            }
-          ]
+          "id": 17085
         }
       ],
       "name": [
         {
           "elementValue": {
-            "value": "NM_000548.3(TSC2):c.*154dup",
-            "type": "preferred name"
+            "type": "preferred name",
+            "value": "NM_152443.2(RDH12):c.677A>G (p.Tyr226Cys)"
           }
         }
       ],
-      "type": "Variant",
-      "id": 64862
+      "id": 2046
     },
+    "clinVarAccession": {
+      "type": "RCV",
+      "version": 1,
+      "acc": "RCV000002127",
+      "dateUpdated": 1414627200000
+    },
+    "assertion": {
+      "type": "VARIATION_TO_DISEASE"
+    },
+    "clinicalSignificance": {
+      "reviewStatus": "CLASSIFIED_BY_SINGLE_SUBMITTER",
+      "dateLastEvaluated": 1354060800000,
+      "description": "Pathogenic"
+    },
+    "recordStatus": "current",
+    "id": 59630,
     "traitSet": {
+      "type": "Disease",
+      "id": 522,
       "trait": [
         {
+          "type": "Disease",
           "name": [
             {
               "elementValue": {
-                "value": "Tuberous sclerosis syndrome",
-                "type": "Preferred"
+                "type": "Preferred",
+                "value": "Leber congenital amaurosis 13"
               },
               "xref": [
                 {
-                  "db": "SNOMED CT",
-                  "id": "7199000",
-                  "status": "CURRENT"
+                  "db": "Genetic Alliance",
+                  "status": "CURRENT",
+                  "id": "Leber+congenital+amaurosis+type+13/4135"
                 }
               ]
             },
             {
               "elementValue": {
-                "value": "Added_EFO_URL",
-                "type": "EFO URL"
+                "type": "Alternate",
+                "value": "Leber Congenital Amaurosis"
+              },
+              "xref": [
+                {
+                  "db": "GeneReviews",
+                  "status": "CURRENT",
+                  "id": "NBK1298"
+                }
+              ]
+            }
+          ],
+          "xref": [
+            {
+              "db": "MedGen",
+              "status": "CURRENT",
+              "id": "C2675186"
+            },
+            {
+              "db": "OMIM",
+              "type": "MIM",
+              "status": "CURRENT",
+              "id": "612712"
+            }
+          ],
+          "attributeSet": [
+            {
+              "attribute": {
+                "type": "public definition",
+                "value": "Leber congenital amaurosis (LCA), a severe dystrophy of the retina, typically becomes evident in the first year of life. Visual function is usually poor and often accompanied by nystagmus, sluggish or near-absent pupillary responses, photophobia, high hyperopia, and keratoconus. Visual acuity is rarely better than 20/400. A characteristic finding is Franceschetti's oculo-digital sign, comprising eye poking, pressing, and rubbing. The appearance of the fundus is extremely variable. While the retina may initially appear normal, a pigmentary retinopathy reminiscent of retinitis pigmentosa is frequently observed later in childhood. The electroretinogram (ERG) is characteristically \"nondetectable\" or severely subnormal."
+              },
+              "xref": [
+                {
+                  "db": "GeneReviews",
+                  "status": "CURRENT",
+                  "id": "NBK1298"
+                }
+              ]
+            }
+          ],
+          "id": 2542,
+          "citation": [
+            {
+              "type": "review",
+              "abbrev": "GeneReviews",
+              "id": {
+                "value": "20301475",
+                "source": "PubMed"
               }
             },
             {
-              "elementValue": {
-                "value": "Added_EFO_ID",
-                "type": "EFO id"
-              }
-            },
-            {
-              "elementValue": {
-                "value": "Added_EFO_name",
-                "type": "EFO name"
+              "type": "review",
+              "abbrev": "GeneReviews",
+              "id": {
+                "value": "20301590",
+                "source": "PubMed"
               }
             }
           ],
           "symbol": [
             {
               "elementValue": {
-                "value": "TSC",
-                "type": "Preferred"
+                "type": "Preferred",
+                "value": "LCA13"
               },
               "xref": [
                 {
                   "db": "OMIM",
-                  "id": "191100",
                   "type": "MIM",
-                  "status": "CURRENT"
+                  "status": "CURRENT",
+                  "id": "612712"
                 }
               ]
-            },
-            {
-              "elementValue": {
-                "value": "TS",
-                "type": "Alternate"
-              },
-              "xref": [
-                {
-                  "db": "OMIM",
-                  "id": "191100",
-                  "type": "MIM",
-                  "status": "CURRENT"
-                }
-              ]
-            }
-          ],
-          "attributeSet": [
-            {
-              "attribute": {
-                "value": "Tuberous sclerosis complex (TSC) involves abnormalities of the skin (hypomelanotic macules, facial angiofibromas, shagreen patches, fibrous facial plaques, ungual fibromas); brain (cortical tubers, subependymal nodules [SENs] and subependymal giant cell astrocytomas [SEGAs], seizures, intellectual disability/developmental delay); kidney (angiomyolipomas, cysts, renal cell carcinomas); heart (rhabdomyomas, arrhythmias); and lungs (lymphangioleiomyomatosis [LAM]). CNS tumors are the leading cause of morbidity and mortality; renal disease is the second leading cause of early death.",
-                "type": "public definition"
-              },
-              "xref": [
-                {
-                  "db": "GeneReviews",
-                  "id": "NBK1220",
-                  "status": "CURRENT"
-                }
-              ]
-            },
-            {
-              "attribute": {
-                "value": "Neoplasm",
-                "type": "keyword"
-              }
-            },
-            {
-              "attribute": {
-                "value": "Hereditary cancer syndrome",
-                "type": "keyword"
-              }
-            }
-          ],
-          "citation": [
-            {
-              "url": "https://www.orpha.net/data/patho/Pro/en/Emergency_TuberousSclerosis.pdf",
-              "citationText": "Orphanet, Tuberous sclerosis, 2007",
-              "type": "practice guideline",
-              "abbrev": "Orphanet, 2007"
-            },
-            {
-              "id": {
-                "value": "20301399",
-                "source": "PubMed"
-              },
-              "type": "review",
-              "abbrev": "GeneReviews"
-            }
-          ],
-          "type": "Disease",
-          "id": 15993,
-          "xref": [
-            {
-              "db": "MedGen",
-              "id": "C0041341",
-              "status": "CURRENT"
             }
           ]
         }
-      ],
-      "type": "Disease",
-      "id": 8139
+      ]
     },
-    "dateCreated": 1379286000000,
-    "dateLastUpdated": 1412982000000,
-    "id": 144533
-  },
-  "clinVarAssertion": [
-    {
-      "clinVarSubmissionID": {
-        "submitter": "Tuberous sclerosis database (TSC2)",
-        "title": "NM_000548.3:c.*154dup AND TSC",
-        "localKey": "TSC2_02318_TSC",
-        "submitterDate": 1376002800000
-      },
-      "clinVarAccession": {
-        "acc": "SCV000083280",
-        "version": 1,
-        "type": "SCV",
-        "orgID": 500074,
-        "dateUpdated": 1403478000000
-      },
-      "recordStatus": "current",
-      "clinicalSignificance": {
-        "reviewStatus": "CLASSIFIED_BY_SINGLE_SUBMITTER",
-        "description": [
-          "not provided"
-        ]
-      },
-      "assertion": {
-        "type": "variation to disease"
-      },
-      "externalID": {
-        "db": "Tuberous sclerosis database (TSC2)",
-        "id": "TSC2_02318",
-        "status": "CURRENT"
-      },
-      "observedIn": [
-        {
-          "sample": {
-            "origin": "germline",
-            "species": {
-              "value": "human"
-            },
-            "affectedStatus": "yes"
+    "observedIn": [
+      {
+        "sample": {
+          "affectedStatus": "not provided",
+          "species": {
+            "value": "human",
+            "taxonomyId": 9606
           },
-          "method": [
-            {
-              "methodType": "LITERATURE_ONLY"
-            }
-          ],
-          "observedData": [
-            {
-              "attribute": {
-                "value": "1",
-                "type": "VariantAlleles"
-              }
-            }
-          ]
-        }
-      ],
-      "measureSet": {
-        "measure": [
+          "origin": "germline"
+        },
+        "observedData": [
           {
-            "attributeSet": [
+            "citation": [
               {
-                "attribute": {
-                  "value": "NM_000548.3:c.*154dup",
-                  "type": "HGVS"
-                }
-              },
-              {
-                "attribute": {
-                  "value": "p.(=)",
-                  "type": "HGVS"
-                }
-              },
-              {
-                "attribute": {
-                  "value": "Exon 41",
-                  "type": "Location"
+                "type": "general",
+                "id": {
+                  "value": "15258582",
+                  "source": "PubMed"
                 }
               }
             ],
-            "measureRelationship": [
+            "attribute": {
+              "type": "Description",
+              "value": "In affected members of 3 consanguineous Austrian kindreds with Leber congenital amaurosis-13 (612712), Janecke et al. (2004) identified homozygosity for a 677A-G transition in exon 6 of the RDH12 gene, resulting in a tyr226-to-cys (Y226C) substitution. The same mutation was identified in 2 Austrian individuals with sporadic LCA13. Janecke et al. (2004) demonstrated that, when expressed in COS-7 cells, the cys226 variant had diminished activity in interconverting isomers of retinol and retinal."
+            },
+            "id": 3703574
+          },
+          {
+            "citation": [
               {
-                "symbol": [
-                  {
-                    "elementValue": {
-                      "value": "TSC2",
-                      "type": "Preferred"
-                    }
-                  }
-                ],
-                "type": "variant in gene"
+                "type": "general",
+                "id": {
+                  "value": "15322982",
+                  "source": "PubMed"
+                }
               }
             ],
-            "type": "Variation"
+            "attribute": {
+              "type": "Description",
+              "value": "In affected members of a French family with LCA, Perrault et al. (2004) identified the Y226C mutation in compound heterozygous state with a 523T-C transition in exon 5 of the RDH12 gene, resulting in a ser175-to-pro substitution (S175P; 608830.0011)."
+            },
+            "id": 3703574
           }
         ],
-        "type": "Variant"
-      },
-      "traitSet": {
-        "trait": [
+        "method": [
           {
-            "name": [
-              {
-                "elementValue": {
-                  "value": "TSC",
-                  "type": "Preferred"
-                }
-              }
-            ],
-            "type": "Disease"
+            "methodType": "LITERATURE_ONLY"
           }
-        ],
-        "type": "Disease"
-      },
-      "id": 143786
-    }
-  ],
-  "id": 3756609
+        ]
+      }
+    ],
+    "dateLastUpdated": 1414627200000
+  },
+  "id": 3908085
 })
     # record_string = json.load(test_record)
     return test_record
