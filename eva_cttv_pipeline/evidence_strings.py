@@ -1,5 +1,6 @@
 import copy
 import json
+import sys
 
 import jsonschema
 
@@ -150,9 +151,14 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
                          trait.efo_list, ref_list, ensembl_gene_id, report)
 
         self.add_unique_association_field('alleleOrigin', 'germline')
-        self.set_variant('http://identifiers.org/dbsnp/' + clinvar_record.rs,
-                         get_cttv_variant_type(cellbase_record['reference'],
-                                               cellbase_record['alternate']))
+        if clinvar_record.rs:
+            self.set_variant('http://identifiers.org/dbsnp/' + clinvar_record.rs,
+                             get_cttv_variant_type(cellbase_record['reference'],
+                                                   cellbase_record['alternate']))
+        else:
+            self.set_variant('http://www.ncbi.nlm.nih.gov/clinvar/' + clinvar_record.acc,
+                             get_cttv_variant_type(cellbase_record['reference'],
+                                                   cellbase_record['alternate']))
         self.date = clinvar_record.date
         self.db_xref_url = 'http://identifiers.org/clinvar.record/' + clinvar_record.accession
         self.url = 'http://www.ncbi.nlm.nih.gov/clinvar/' + clinvar_record.accession
@@ -240,6 +246,7 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
 
     def _clear_variant(self):
         self['variant']['id'] = []
+        self['variant']['type'] = []
 
     def set_variant(self, var_id, var_type):
         self['variant']['id'].append(var_id)

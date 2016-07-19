@@ -364,8 +364,8 @@ def load_efo_mapping(efo_mapping_file, ignore_terms_file=None, adapt_terms_file=
     with utilities.open_file(efo_mapping_file, "rt") as f:
         for line in f:
             line_list = line.rstrip().split("\t")
-            valid_efo, urls_to_adapt = get_urls([line_list[3]], ignore_terms, adapt_terms)
-            clinvar_trait = line_list[4].lower()
+            valid_efo, urls_to_adapt = get_urls([line_list[1]], ignore_terms, adapt_terms)
+            clinvar_trait = line_list[0].lower()
 
             if len(valid_efo) > 0:
                 trait_2_efo[clinvar_trait] = valid_efo

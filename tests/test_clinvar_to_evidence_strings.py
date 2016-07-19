@@ -114,7 +114,7 @@ class LoadEfoMappingTest(unittest.TestCase):
     def setUpClass(cls):
         ignore_file = os.path.join(os.path.dirname(__file__), 'resources', 'ignore_file.txt')
         efo_file = \
-            os.path.join(os.path.dirname(__file__), 'resources', 'ClinVar_Traits_EFO_090915.xls')
+            os.path.join(os.path.dirname(__file__), 'resources', 'one_mapped_url_per_clinvar_trat.tsv')
 
         cls.trait_2_efo, cls.unavailable_efo = \
             clinvar_to_evidence_strings.load_efo_mapping(efo_file)
