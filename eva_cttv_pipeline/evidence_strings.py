@@ -156,7 +156,7 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
                              get_cttv_variant_type(cellbase_record['reference'],
                                                    cellbase_record['alternate']))
         else:
-            self.set_variant('http://www.ncbi.nlm.nih.gov/clinvar/' + clinvar_record.acc,
+            self.set_variant('http://www.ncbi.nlm.nih.gov/clinvar/' + clinvar_record.accession,
                              get_cttv_variant_type(cellbase_record['reference'],
                                                    cellbase_record['alternate']))
         self.date = clinvar_record.date

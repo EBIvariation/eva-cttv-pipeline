@@ -186,7 +186,7 @@ class ClinvarRecord(UserDict):
                     if ('id' in citation) and citation['id'] is not None:
                         for citation_id in citation['id']:
                             if citation_id['source'] == 'PubMed':
-                                pubmed_refs_list[-1].append(int(citation['id']['value']))
+                                pubmed_refs_list[-1].append(int(citation_id['value']))
 
         return pubmed_refs_list
 
@@ -199,8 +199,9 @@ class ClinvarRecord(UserDict):
                     if 'citation' in observed_data:
                         for citation in observed_data['citation']:
                             if ('id' in citation) and citation['id'] is not None:
-                                if citation['id']['source'] == 'PubMed':
-                                    pubmed_refs_list.append(int(citation['id']['value']))
+                                for citation_id in citation['id']:
+                                    if citation_id['source'] == 'PubMed':
+                                        pubmed_refs_list.append(int(citation_id['value']))
         return pubmed_refs_list
 
     @property
@@ -210,8 +211,9 @@ class ClinvarRecord(UserDict):
             if 'citation' in measure:
                 for citation in measure['citation']:
                     if 'id' in citation and citation['id'] is not None:
-                        if citation['id']['source'] == 'PubMed':
-                            pubmed_refs_list.append(int(citation['id']['value']))
+                        for citation_id in citation['id']:
+                            if citation_id['source'] == 'PubMed':
+                                pubmed_refs_list.append(int(citation_id['value']))
         return pubmed_refs_list
 
     @property
