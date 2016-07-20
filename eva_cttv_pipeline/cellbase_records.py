@@ -32,13 +32,7 @@ class CellbaseRecords:
         reader = codecs.getreader("utf-8")
         url = 'http://{}/cellbase/webservices/rest/v3/hsapiens/feature/clinical/' \
               'all?source=clinvar&skip={}&limit={}'.format(config.HOST, self.skip, self.limit)
-        for _ in range(3):
-            while True:
-                try:
-                    answer = urllib.request.urlopen(url)
-                except Exception:
-                    continue
-                raise urllib.error.HTTPError
+        answer = urllib.request.urlopen(url)
 
         curr_response = json.load(reader(answer))['response'][0]
         return curr_response
