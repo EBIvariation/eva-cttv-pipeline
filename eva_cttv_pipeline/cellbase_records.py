@@ -47,4 +47,4 @@ class CellbaseRecords:
     def __each_line_in_file(self):
         with utilities.open_file(self.json_file, "rt") as f:
             for line in f:
-                yield line.rstrip()
+                yield json.loads(line.rstrip())

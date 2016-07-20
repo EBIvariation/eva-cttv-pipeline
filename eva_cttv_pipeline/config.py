@@ -11,7 +11,7 @@ SPARQL_PASSWORD = ""
 #########################################
 # cellbase
 BATCH_SIZE = 200
-HOST = 'www.ebi.ac.uk'
+HOST = 'wwwdev.ebi.ac.uk'
 
 # output settings
 EVIDENCE_STRINGS_FILE_NAME = 'evidence_strings.json'
