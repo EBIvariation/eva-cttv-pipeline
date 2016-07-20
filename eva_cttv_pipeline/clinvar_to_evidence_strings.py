@@ -189,7 +189,9 @@ def clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_fi
 
     report = Report(mappings.unavailable_efo_dict)
 
-    for cellbase_record in cellbase_records.CellbaseRecords(json_file):
+    cell_recs = cellbase_records.CellbaseRecords(json_file=json_file)
+
+    for cellbase_record in cell_recs:
         n_ev_strings_per_record = 0
         clinvar_record = \
             clinvar.ClinvarRecord(mappings=mappings,

@@ -184,8 +184,9 @@ class ClinvarRecord(UserDict):
             if 'citation' in trait:
                 for citation in trait['citation']:
                     if ('id' in citation) and citation['id'] is not None:
-                        if citation['id']['source'] == 'PubMed':
-                            pubmed_refs_list[-1].append(int(citation['id']['value']))
+                        for citation_id in citation['id']:
+                            if citation_id['source'] == 'PubMed':
+                                pubmed_refs_list[-1].append(int(citation['id']['value']))
 
         return pubmed_refs_list
 
