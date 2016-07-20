@@ -167,7 +167,7 @@ class Report:
 
 
 def launch_pipeline(dir_out, allowed_clinical_significance, ignore_terms_file, adapt_terms_file,
-                    efo_mapping_file, snp_2_gene_file, variant_summary_file):
+                    efo_mapping_file, snp_2_gene_file, variant_summary_file, json_file):
 
     allowed_clinical_significance = allowed_clinical_significance.split(',') if \
         allowed_clinical_significance else get_default_allowed_clinical_significance()
@@ -175,7 +175,7 @@ def launch_pipeline(dir_out, allowed_clinical_significance, ignore_terms_file, a
     mappings = get_mappings(efo_mapping_file, ignore_terms_file, adapt_terms_file, snp_2_gene_file,
                             variant_summary_file)
 
-    report = clinvar_to_evidence_strings(allowed_clinical_significance, mappings)
+    report = clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_file)
 
     output(report, dir_out)
 
@@ -185,11 +185,11 @@ def output(report, dir_out):
     print(report)
 
 
-def clinvar_to_evidence_strings(allowed_clinical_significance, mappings):
+def clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_file):
 
     report = Report(mappings.unavailable_efo_dict)
 
-    for cellbase_record in cellbase_records.CellbaseRecords():
+    for cellbase_record in cellbase_records.CellbaseRecords(json_file):
         n_ev_strings_per_record = 0
         clinvar_record = \
             clinvar.ClinvarRecord(mappings=mappings,

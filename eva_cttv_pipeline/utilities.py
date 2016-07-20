@@ -179,6 +179,7 @@ class ArgParser:
         parser.add_argument("-v", "--variantSummaryFile", dest="variant_summary_file",
                             help="Path to file with RS id to ensembl gene ID and consequence "
                                  "mappings", required=True)
+        parser.add_argument("-j", dest="json_file", help="File with json string per line")
 
         args = parser.parse_args(args=argv[1:])
 
@@ -189,6 +190,7 @@ class ArgParser:
         self.efo_mapping_file = args.efo_mapping_file
         self.snp_2_gene_file = args.snp_2_gene_file
         self.variant_summary_file = args.variant_summary_file
+        self.json_file = args.json_file
 
 
 def check_dir_exists_create(directory):
