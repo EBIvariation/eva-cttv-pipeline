@@ -144,7 +144,8 @@ class Report:
 
         with utilities.open_file(dir_out + '/' + config.EVIDENCE_RECORDS_FILE_NAME, 'w') as fdw:
             for evidence_record in self.evidence_list:
-                fdw.write('\t'.join(evidence_record) + '\n')
+                evidence_record_to_output = ['.' if ele is None else ele for ele in evidence_record]
+                fdw.write('\t'.join(evidence_record_to_output) + '\n')
 
     @staticmethod
     def __get_counters():
@@ -365,6 +366,8 @@ def load_efo_mapping(efo_mapping_file, ignore_terms_file=None, adapt_terms_file=
 
     with utilities.open_file(efo_mapping_file) as f:
         for line in f:
+            if line.startswith("#"):
+                continue
             line_list = line.rstrip().split("\t")
             valid_efo, urls_to_adapt = get_urls([line_list[1]], ignore_terms, adapt_terms)
             clinvar_trait = line_list[0].lower()
