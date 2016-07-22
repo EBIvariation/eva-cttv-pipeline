@@ -93,22 +93,22 @@ class ArgParserTest(unittest.TestCase):
         cls.argparser = utilities.ArgParser(argv)
 
     def test_clin_sig(self):
-        self.assertEquals(self.argparser.clinical_significance, self.clin_sig)
+        self.assertEqual(self.argparser.clinical_significance, self.clin_sig)
 
     def test_ignore(self):
-        self.assertEquals(self.argparser.ignore_terms_file, self.ignore)
+        self.assertEqual(self.argparser.ignore_terms_file, self.ignore)
 
     def test_out(self):
-        self.assertEquals(self.argparser.out, self.out)
+        self.assertEqual(self.argparser.out, self.out)
 
     def test_efo_map_file(self):
-        self.assertEquals(self.argparser.efo_mapping_file, self.efo_map_file)
+        self.assertEqual(self.argparser.efo_mapping_file, self.efo_map_file)
 
     def test_snp_2_gene_file(self):
-        self.assertEquals(self.argparser.snp_2_gene_file, self.snp_2_gene_file)
+        self.assertEqual(self.argparser.snp_2_gene_file, self.snp_2_gene_file)
 
     def test_variant_summary_file(self):
-        self.assertEquals(self.argparser.variant_summary_file, self.variant_summary_file)
+        self.assertEqual(self.argparser.variant_summary_file, self.variant_summary_file)
 
 
 class CheckDirExistsCreateTest(unittest.TestCase):
