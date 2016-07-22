@@ -7,7 +7,7 @@ from tests import test_clinvar
 
 def _get_mappings():
     efo_mapping_file = os.path.join(os.path.dirname(__file__), 'resources',
-                                    'one_mapped_url_per_clinvar_trat.tsv')
+                                    'feb16_jul16_combined_trait_to_url.tsv')
     ignore_file = os.path.join(os.path.dirname(__file__), 'resources', 'ignore_file.txt')
     snp_2_gene_file = os.path.join(os.path.dirname(__file__), 'resources',
                                    'snp2gene_assignment_jul2016_extract.tsv')
@@ -29,13 +29,13 @@ class GetMappingsTest(unittest.TestCase):
         cls.mappings = MAPPINGS
 
     def test_efo_mapping(self):
-        self.assertEqual(len(self.mappings.trait_2_efo), 4470)
+        self.assertEqual(len(self.mappings.trait_2_efo), 5055)
         self.assertEqual(len(self.mappings.unavailable_efo_dict), 0)
 
-        self.assertEqual(self.mappings.trait_2_efo["2,4-dienoyl-coa reductase deficiency"],
-                         ['http://purl.obolibrary.org/obo/HP_0002161'])
-        self.assertEqual(self.mappings.trait_2_efo["2-methyl-3-hydroxybutyric aciduria"],
-                         ['http://www.orpha.net/ORDO/Orphanet_391417'])
+        self.assertEqual(self.mappings.trait_2_efo["renal-hepatic-pancreatic dysplasia 2"],
+                         ['http://www.orpha.net/ORDO/Orphanet_294415'])
+        self.assertEqual(self.mappings.trait_2_efo["frontotemporal dementia"],
+                         ['http://purl.obolibrary.org/obo/HP_0000713'])
         self.assertEqual(
             self.mappings.trait_2_efo["3 beta-hydroxysteroid dehydrogenase deficiency"],
             ['http://www.orpha.net/ORDO/Orphanet_90791'])
@@ -75,7 +75,7 @@ class CreateTraitTest(unittest.TestCase):
         self.assertEqual(self.trait.clinvar_trait_list, ['Ciliary dyskinesia, primary, 7'])
 
     def test_efo_list(self):
-        self.assertEqual(self.trait.efo_list, ['http://www.orpha.net/ORDO/Orphanet_244'])
+        self.assertEqual(self.trait.efo_list, ['http://www.ebi.ac.uk/efo/EFO_0003900'])
 
     def test_return_none(self):
         none_trait = \
@@ -114,7 +114,7 @@ class LoadEfoMappingTest(unittest.TestCase):
     def setUpClass(cls):
         ignore_file = os.path.join(os.path.dirname(__file__), 'resources', 'ignore_file.txt')
         efo_file = \
-            os.path.join(os.path.dirname(__file__), 'resources', 'one_mapped_url_per_clinvar_trat.tsv')
+            os.path.join(os.path.dirname(__file__), 'resources', 'feb16_jul16_combined_trait_to_url.tsv')
 
         cls.trait_2_efo, cls.unavailable_efo = \
             clinvar_to_evidence_strings.load_efo_mapping(efo_file)
@@ -122,10 +122,10 @@ class LoadEfoMappingTest(unittest.TestCase):
             clinvar_to_evidence_strings.load_efo_mapping(efo_file, ignore_terms_file=ignore_file)
 
     def test_just_mapping_trait_2_efo(self):
-        self.assertEqual(len(self.trait_2_efo), 4554)
+        self.assertEqual(len(self.trait_2_efo), 5283)
 
     def test_w_ignore_trait_2_efo(self):
-        self.assertEqual(len(self.trait_2_efo_w_ignore), 4470)
+        self.assertEqual(len(self.trait_2_efo_w_ignore), 5055)
 
 
 class GetUnmappedUrlTest(unittest.TestCase):

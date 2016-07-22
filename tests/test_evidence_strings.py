@@ -2,8 +2,6 @@ from datetime import datetime
 import unittest
 from types import SimpleNamespace
 
-from datadiff import diff
-
 from eva_cttv_pipeline import clinvar, efo_term, clinvar_to_evidence_strings, \
     evidence_strings, consequence_type
 
