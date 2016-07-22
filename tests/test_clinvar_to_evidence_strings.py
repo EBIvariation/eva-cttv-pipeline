@@ -41,7 +41,7 @@ class GetMappingsTest(unittest.TestCase):
             ['http://www.orpha.net/ORDO/Orphanet_90791'])
 
     def test_consequence_type_dict(self):
-        self.assertEqual(len(self.mappings.consequence_type_dict), 54)
+        self.assertEqual(len(self.mappings.consequence_type_dict), 56)
 
         self.assertTrue("rs121908485" in self.mappings.consequence_type_dict)
         self.assertTrue("rs121912888" in self.mappings.consequence_type_dict)
@@ -53,7 +53,7 @@ class GetMappingsTest(unittest.TestCase):
         self.assertFalse("rs9" in self.mappings.consequence_type_dict)
 
     def test_rcv_to_rs_nsv(self):
-        self.assertEqual(len(self.mappings.rcv_to_rs), 19)
+        self.assertEqual(len(self.mappings.rcv_to_rs), 21)
         self.assertEqual(len(self.mappings.rcv_to_nsv), 6)
 
         self.assertEqual(self.mappings.rcv_to_nsv["RCV000020147"], "nsv1067916")
