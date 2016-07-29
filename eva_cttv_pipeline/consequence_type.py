@@ -3,12 +3,12 @@ from eva_cttv_pipeline import utilities
 __author__ = 'Javier Lopez: javild@gmail.com'
 
 
-def process_gene(consequence_type_dict, var_id, ensembl_gene_id, so_term):
-    if var_id in consequence_type_dict:
-        consequence_type_dict[var_id].ensembl_gene_ids.add(ensembl_gene_id)
-        consequence_type_dict[var_id].add_so_term(so_term)
+def process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term):
+    if variant_id in consequence_type_dict:
+        consequence_type_dict[variant_id].ensembl_gene_ids.add(ensembl_gene_id)
+        consequence_type_dict[variant_id].add_so_term(so_term)
     else:
-        consequence_type_dict[var_id] = ConsequenceType([ensembl_gene_id], [so_term])
+        consequence_type_dict[variant_id] = ConsequenceType([ensembl_gene_id], [so_term])
 
 
 def process_consequence_type_file_tsv(snp_2_gene_filepath):
@@ -21,13 +21,13 @@ def process_consequence_type_file_tsv(snp_2_gene_filepath):
             line = line.rstrip()
             line_list = line.split("\t")
 
-            var_id = line_list[0]
+            variant_id = line_list[0]
             ensembl_gene_id = line_list[1]
             so_term = line_list[3]
 
             ensembl_gene_ids = ensembl_gene_id.split(",")
             for ensembl_gene_id in ensembl_gene_ids:
-                process_gene(consequence_type_dict, var_id, ensembl_gene_id, so_term)
+                process_gene(consequence_type_dict, variant_id, ensembl_gene_id, so_term)
 
     return consequence_type_dict, one_rs_multiple_genes
 

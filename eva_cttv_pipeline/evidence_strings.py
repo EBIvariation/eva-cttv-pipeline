@@ -134,9 +134,11 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
     """
 
     schema = json.loads(
-        utilities.open_file(utilities.get_resource_file(__package__, config.GEN_SCHEMA_FILE), 'r').read())
+        utilities.open_file(utilities.get_resource_file(__package__, config.GEN_SCHEMA_FILE),
+                            'rt').read())
 
-    with utilities.open_file(utilities.get_resource_file(__package__, config.GEN_EV_STRING_JSON)) as gen_json_file:
+    with utilities.open_file(utilities.get_resource_file(__package__, config.GEN_EV_STRING_JSON),
+                             "rt") as gen_json_file:
         base_json = json.load(gen_json_file)
 
     def __init__(self, clinvar_record, report, trait, ensembl_gene_id, cellbase_record):
@@ -282,10 +284,10 @@ class CTTVSomaticEvidenceString(CTTVEvidenceString):
     """
 
     schema = json.loads(utilities.open_file(utilities.get_resource_file(__package__,
-                                                         config.SOM_SCHEMA_FILE), 'r').read())
+                                                         config.SOM_SCHEMA_FILE), 'rt').read())
 
-    with utilities.open_file(utilities.get_resource_file(__package__, config.SOM_EV_STRING_JSON)) \
-            as som_json_file:
+    with utilities.open_file(utilities.get_resource_file(__package__, config.SOM_EV_STRING_JSON),
+                             "rt") as som_json_file:
         base_json = json.load(som_json_file)
 
     def __init__(self, clinvar_record, report, trait, ensembl_gene_id):

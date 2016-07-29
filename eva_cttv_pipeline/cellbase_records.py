@@ -8,9 +8,19 @@ from eva_cttv_pipeline import config, utilities
 
 class CellbaseRecords:
 
-    """Assists in the requesting and iteration of clinvar cellbase records"""
+    """Assists in the requesting and iteration of clinvar cellbase records."""
 
     def __init__(self, limit=config.BATCH_SIZE, skip=0, json_file=None):
+        """
+
+        :param limit: Number of Clinvar records requested from Cellbase in each request
+        :param skip: Number of Clinvar records to skip on the first request to Cellbase.
+        The 2nd request to Cellbase will also skip this initial number of records, plus the batch
+        limit.
+        :param json_file: Path to a file containing a list of json strings of the Clinvar records
+        from Cellbase, one per line. This can be used to potentially save time since requests to
+        Cellbase are subsequently not needed.
+        """
         self.skip = skip
         self.limit = limit
         self.json_file = json_file

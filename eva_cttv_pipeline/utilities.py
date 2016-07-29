@@ -12,17 +12,11 @@ import shutil
 import eva_cttv_pipeline.config as config
 
 
-def open_file(file_path, mode=None):
+def open_file(file_path, mode):
     if file_path.endswith(".gz"):
-        if mode:
-            return gzip.open(file_path, mode)
-        else:
-            return gzip.open(file_path)
+        return gzip.open(file_path, mode)
     else:
-        if mode:
-            return open(file_path, mode)
-        else:
-            return open(file_path)
+        return open(file_path, mode)
 
 
 def get_resource_file(package, resource):
@@ -179,7 +173,9 @@ class ArgParser:
         parser.add_argument("-v", "--variantSummaryFile", dest="variant_summary_file",
                             help="Path to file with RS id to ensembl gene ID and consequence "
                                  "mappings", required=True)
-        parser.add_argument("-j", dest="json_file", help="File with json string per line")
+        parser.add_argument("-j", dest="json_file", help="File containing Clinvar records json "
+                                                         "strings in the format of documents in "
+                                                         "Cellbase. One record per line.")
 
         args = parser.parse_args(args=argv[1:])
 

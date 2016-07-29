@@ -126,23 +126,23 @@ class Report:
         write_string_list_to_file(self.nsv_list, dir_out + '/' + config.NSV_LIST_FILE)
 
         # Contains traits without a mapping in Gary's xls
-        with utilities.open_file(dir_out + '/' + config.UNMAPPED_TRAITS_FILE_NAME, 'w') as fdw:
+        with utilities.open_file(dir_out + '/' + config.UNMAPPED_TRAITS_FILE_NAME, 'wt') as fdw:
             fdw.write('Trait\tCount\n')
             for trait_list in self.unmapped_traits:
                 fdw.write(str(trait_list.encode('utf8')) + '\t' +
                           str(self.unmapped_traits[trait_list]) + '\n')
 
         # Contains urls provided by Gary which are not yet included within EFO
-        with utilities.open_file(dir_out + '/' + config.UNAVAILABLE_EFO_FILE_NAME, 'w') as fdw:
+        with utilities.open_file(dir_out + '/' + config.UNAVAILABLE_EFO_FILE_NAME, 'wt') as fdw:
             fdw.write('Trait\tCount\n')
             for url in self.unavailable_efo_dict:
                 fdw.write(url.encode('utf8') + '\t' + str(self.unavailable_efo_dict[url]) + '\n')
 
-        with utilities.open_file(dir_out + '/' + config.EVIDENCE_STRINGS_FILE_NAME, 'w') as fdw:
+        with utilities.open_file(dir_out + '/' + config.EVIDENCE_STRINGS_FILE_NAME, 'wt') as fdw:
             for evidence_string in self.evidence_string_list:
                 fdw.write(json.dumps(evidence_string) + '\n')
 
-        with utilities.open_file(dir_out + '/' + config.EVIDENCE_RECORDS_FILE_NAME, 'w') as fdw:
+        with utilities.open_file(dir_out + '/' + config.EVIDENCE_RECORDS_FILE_NAME, 'wt') as fdw:
             for evidence_record in self.evidence_list:
                 evidence_record_to_output = ['.' if ele is None else ele for ele in evidence_record]
                 fdw.write('\t'.join(evidence_record_to_output) + '\n')
@@ -273,26 +273,16 @@ def skip_record(clinvar_record, cellbase_record, allowed_clinical_significance, 
     if clinvar_record.clinical_significance not in allowed_clinical_significance:
         if clinvar_record.nsv is not None:
             counters["n_nsv_skipped_clin_sig"] += 1
-        # print("Not in allowed. Clinical significance: %s. Allowed clincal significances: %s." %
-              # (clinvar_record.clinical_significance, allowed_clinical_significance))
         return True
 
     if cellbase_record['reference'] == cellbase_record['alternate']:
         counters["n_same_ref_alt"] += 1
         if clinvar_record.nsv is not None:
             counters["n_nsv_skipped_wrong_ref_alt"] += 1
-            # print("ref != alt. ref: %s alt: %s" % (cellbase_record['reference'],
-                                                   # cellbase_record['alternate']))
         return True
-
-    # if clinvar_record.rs is None:
-    #     counters["n_pathogenic_no_rs"] += 1
-    #     # print("rs is none. clinvar acc: %s" % clinvar_record.accession)
-    #     return True
 
     if clinvar_record.consequence_type is None:
         counters["no_variant_to_ensg_mapping"] += 1
-        # print("con type is none. clinvar acc: %s" % clinvar_record.accession)
         return True
 
     return False
@@ -322,7 +312,7 @@ def create_trait(trait_counter, name_list, trait_2_efo_dict):
 
 
 def write_string_list_to_file(string_list, filename):
-    with utilities.open_file(filename, 'w') as out_file:
+    with utilities.open_file(filename, 'wt') as out_file:
         out_file.write('\n'.join(string_list))
 
 
@@ -364,7 +354,7 @@ def load_efo_mapping(efo_mapping_file, ignore_terms_file=None, adapt_terms_file=
     unavailable_efo = {}
     n_efo_mappings = 0
 
-    with utilities.open_file(efo_mapping_file) as f:
+    with utilities.open_file(efo_mapping_file, "rt") as f:
         for line in f:
             if line.startswith("#"):
                 continue
@@ -422,7 +412,7 @@ def get_urls(url_list, ignore_terms, adapt_terms):
 def get_terms_from_file(terms_file_path):
     if terms_file_path is not None:
         print('Loading list of terms...')
-        with utilities.open_file(terms_file_path, 'r') as terms_file:
+        with utilities.open_file(terms_file_path, 'rt') as terms_file:
             terms_list = [line.rstrip() for line in terms_file]
         print(str(len(terms_file_path)) + ' terms found at ' + terms_file_path)
     else:
