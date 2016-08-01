@@ -4,9 +4,6 @@ import subprocess
 import sys
 
 
-COUNTER = 0
-
-
 class ArgParser:
     def __init__(self, argv):
         parser = argparse.ArgumentParser()
@@ -23,7 +20,6 @@ class ArgParser:
 
 
 def skip_line(record, structural):
-    global COUNTER
     assembly = record[12]
     if assembly != "GRCh38":
         return True
@@ -34,7 +30,6 @@ def skip_line(record, structural):
         nsv = record[7]
         if nsv == "-":
             return True
-        COUNTER += 1
     else:
         rsid = record[6]
         ref = record[25]
@@ -63,7 +58,7 @@ def make_output_lines(record):
     return output_lines
 
 
-def make_output_lines_struct(record):
+def make_output_lines_structural(record):
     chrom = record[13]
     start = record[14]
     end = record[15]
@@ -83,25 +78,29 @@ def make_output_lines_struct(record):
     return output_lines
 
 
-def process_line(line, outfile, structural):
+def get_vcf_record(line):
     line = line.rstrip()
     record = line.split("\t")
-    if skip_line(record, structural):
-        return
-    if structural:
-        output_lines = make_output_lines_struct(record)
-    else:
-        output_lines = make_output_lines(record)
-    for output_line in output_lines:
-        outfile.write(output_line)
+    return record
 
 
 def process_file(infilepath, outfilepath, structural):
+    if structural:
+        make_output_lines_func = make_output_lines_structural
+    else:
+        make_output_lines_func = make_output_lines
+
     with gzip.open(infilepath, "rt") as infile:
         with gzip.open(outfilepath, "wt") as outfile:
             infile.readline()
             for line in infile:
-                process_line(line, outfile, structural)
+                record = get_vcf_record(line)
+                if skip_line(record, structural):
+                    continue
+                output_lines = make_output_lines_func(line)
+                if output_lines:
+                    for output_line in output_lines:
+                        outfile.write(output_line)
 
 
 def post_process(outfilepath):
@@ -114,14 +113,9 @@ def post_process(outfilepath):
 
 
 def main():
-
     args = ArgParser(sys.argv)
-
     process_file(args.infilepath, args.outfilepath, args.structural)
-
     post_process(args.outfilepath)
-
-    print(COUNTER)
 
 
 if __name__ == '__main__':
