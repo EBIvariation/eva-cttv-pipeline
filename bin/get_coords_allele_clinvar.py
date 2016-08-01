@@ -2,6 +2,7 @@ import argparse
 import gzip
 import subprocess
 import sys
+from types import SimpleNamespace
 
 
 class ArgParser:
@@ -20,67 +21,56 @@ class ArgParser:
 
 
 def skip_line(record, structural):
-    assembly = record[12]
-    if assembly != "GRCh38":
+    if record.assembly != "GRCh38":
         return True
-    clin_sig = record[5]
-    if all(x not in clin_sig for x in ["Pathogenic", "Likely Pathogenic"]):
+    if all(x not in record.clin_sig for x in ["Pathogenic", "Likely Pathogenic"]):
         return True
     if structural:
-        nsv = record[7]
-        if nsv == "-":
+        if record.nsv == "-":
             return True
     else:
-        rsid = record[6]
-        ref = record[25]
-        alt = record[26]
-        if not ((ref != "na" and alt != "na") or rsid != "-1"):
+        if not ((record.ref != "na" and record.alt != "na") or record.rs != "-1"):
             return True
     return False
 
 
 def make_output_lines(record):
-    chrom = record[13]
-    start = record[14]
-    end = record[15]
-    ref = record[25]
-    alt = record[26]
-    if record[6] != "-1":
-        var_id = "rs{}".format(record[6])
-    else:
-        var_id = "{}_{}_{}_{}_{}".format(chrom, start, end, ref, alt)
-    clinvar_id = record[8]
-    clinvar_gene = record[3]
-    allele = "{}/{}".format(ref, alt)
     output_lines = []
-    output_line = '\t'.join([chrom, start, end, allele, "+", var_id, clinvar_id, clinvar_gene]) + "\n"
-    output_lines.append(output_line)
-    return output_lines
-
-
-def make_output_lines_structural(record):
-    chrom = record[13]
-    start = record[14]
-    end = record[15]
-    ref = record[25]
-    alt = record[26]
-    rcvs = record[8].split(";")
-    nsv = record[7]
-    gene_id = record[3]
-    pheno_ids = record[10]
-
-    allele = "{}/{}".format(ref, alt)
-
-    output_lines = []
-    for rcv in rcvs:
-        output_line = '\t'.join([chrom, start, end, allele, "+", rcv, nsv, gene_id, pheno_ids]) + "\n"
+    for rcv in record.rcvs:
+        output_line = '\t'.join([record.chrom, record.start, record.end, record.allele, "+",
+                                 record.rs, rcv, record.gene_id]) + "\n"
         output_lines.append(output_line)
     return output_lines
 
 
-def get_vcf_record(line):
+def make_output_lines_structural(record):
+    output_lines = []
+    for rcv in record.rcvs:
+        output_line = '\t'.join([record.chrom, record.start, record.end, record.allele, "+", rcv,
+                                 record.nsv, record.gene_id, record.pheno_ids]) + "\n"
+        output_lines.append(output_line)
+    return output_lines
+
+
+def get_variant_summary_record(line):
     line = line.rstrip()
-    record = line.split("\t")
+    line_list = line.split("\t")
+    record = SimpleNamespace()
+
+    record.assembly = record[12]
+    record.chrom = line_list[13]
+    record.start = line_list[14]
+    record.end = line_list[15]
+    record.ref = line_list[25]
+    record.alt = line_list[26]
+    record.nsv = line_list[7]
+    record.gene_id = line_list[3]
+    record.pheno_ids = line_list[10]
+
+    record.rcvs = line_list[8].split(";")
+    record.rs = "rs{}".format(line_list[6])
+    record.allele = "{}/{}".format(record.ref, record.alt)
+
     return record
 
 
@@ -94,7 +84,7 @@ def process_file(infilepath, outfilepath, structural):
         with gzip.open(outfilepath, "wt") as outfile:
             infile.readline()
             for line in infile:
-                record = get_vcf_record(line)
+                record = get_variant_summary_record(line)
                 if skip_line(record, structural):
                     continue
                 output_lines = make_output_lines_func(line)
