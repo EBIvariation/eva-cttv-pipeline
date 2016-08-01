@@ -9,9 +9,19 @@ class ArgParser:
     def __init__(self, argv):
         parser = argparse.ArgumentParser()
 
-        parser.add_argument("-i", dest="infilepath", required=True)
-        parser.add_argument("-o", dest="outfilepath", required=True)
-        parser.add_argument('-s', dest="structural", action='store_true')
+        parser.add_argument("-i", dest="infilepath", required=True,
+                            help="variant summary file from clinvar e.g.: ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2016-05.txt.gz")
+        parser.add_argument("-o", dest="outfilepath", required=True,
+                            help="Tab separated file. When -s flag is used then the columns are: "
+                                 "chromosome, start pos, end pos, "
+                                 "reference allele/alternate allele, strand, "
+                                 "clinvar accession, dgva/dbvar accession, NCBI gene ID, "
+                                 "phenotype IDs.\n"
+                                 "When the -s is not used the columns are: chromosome, start, "
+                                 "end, reference allele/alternate allele, strand, "
+                                 "clinvar accession, rs ID, NCBI gene ID")
+        parser.add_argument('-s', dest="structural", action='store_true',
+                            help="Output structural records")
 
         args = parser.parse_args(args=argv[1:])
 
@@ -37,8 +47,8 @@ def skip_line(record, structural):
 def make_output_lines(record):
     output_lines = []
     for rcv in record.rcvs:
-        output_line = '\t'.join([record.chrom, record.start, record.end, record.allele, "+",
-                                 record.rs, rcv, record.gene_id]) + "\n"
+        output_line = '\t'.join([record.chrom, record.start, record.end, record.allele, "+", rcv,
+                                 record.rs, record.gene_id]) + "\n"
         output_lines.append(output_line)
     return output_lines
 
