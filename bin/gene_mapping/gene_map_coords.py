@@ -76,7 +76,7 @@ class ArgParser:
                 Script for extracting the coordinates, variant IDs, and NCBI gene ID for ClinVar
                 records from a ClinVar variant_summary file.Output is a tab separated file with one
                 ClinVar record per line, and containing the columns: chromosome, start pos,
-                stop pos, reference and alternate alleles, RS ID, RCV ID, NCBI gene ID, NSV ID.
+                stop pos, reference and alternate alleles, strand, RS ID, RCV ID, NCBI gene ID, NSV ID.
                 If a column doesn't have a value then a value of '-1' is used.
                 """
         parser = argparse.ArgumentParser(description=description)
