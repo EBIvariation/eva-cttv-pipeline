@@ -111,19 +111,19 @@ class CTTVEvidenceString(dict):
 
     @property
     def disease_name(self):
-        return efo_term.EFOTerm(self['disease']['name'][0])
+        return efo_term.EFOTerm(self['disease']['name'])
 
     @disease_name.setter
     def disease_name(self, value):
-        self['disease']['name'] = [value]
+        self['disease']['name'] = value
 
     @property
     def disease_source_name(self):
-        return efo_term.EFOTerm(self['disease']['source_name'][0])
+        return efo_term.EFOTerm(self['disease']['source_name'])
 
     @disease_source_name.setter
     def disease_source_name(self, value):
-        self['disease']['source_name'] = [value]
+        self['disease']['source_name'] = value
 
     @property
     def disease_id(self):

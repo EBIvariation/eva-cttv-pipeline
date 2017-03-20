@@ -4,6 +4,7 @@ import sys
 from collections import defaultdict
 from types import SimpleNamespace
 
+import progressbar
 import jsonschema
 
 from eva_cttv_pipeline import cellbase_records
@@ -187,13 +188,24 @@ def output(report, dir_out):
     print(report)
 
 
+def file_len(fpath):
+    i = -1
+    with utilities.open_file(fpath, mode="rt") as f:
+        for i, l in enumerate(f):
+            pass
+    return i + 1
+
+
 def clinvar_to_evidence_strings(allowed_clinical_significance, mappings, json_file):
 
     report = Report(mappings.unavailable_efo)
 
     cell_recs = cellbase_records.CellbaseRecords(json_file=json_file)
 
-    for cellbase_record in cell_recs:
+    num_cell_recs = file_len(json_file)
+
+    bar = progressbar.ProgressBar(max_value=num_cell_recs)
+    for cellbase_record in bar(cell_recs):
         n_ev_strings_per_record = 0
         clinvar_record = clinvar.ClinvarRecord(cellbase_record['clinvarSet'])
 
