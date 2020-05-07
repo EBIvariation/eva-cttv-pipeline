@@ -199,6 +199,7 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
         else:
             self.gene_2_var_func_consequence = 'http://purl.obolibrary.org/obo/' + \
                                                most_severe_so_term.accession.replace(':', '_')
+        self.add_unique_association_field('functional_consequence', self.gene_2_var_func_consequence)
 
         if len(ref_list) > 0:
             self.set_var_2_disease_literature(ref_list)
