@@ -20,7 +20,7 @@ def get_input_data_for_evidence_string_generation():
 
     trait = SimpleNamespace()
     trait.trait_counter = 0
-    trait.clinvar_name = ''
+    trait.clinvar_name = 'ClinVar name of a mock trait'
     trait.ontology_id = 'http://www.orpha.net/ORDO/Orphanet_88991'
     trait.ontology_label = None
 

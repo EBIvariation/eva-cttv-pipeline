@@ -1,7 +1,8 @@
 {
   "access_level": "public",
   "disease": {
-    "id": "http://www.orpha.net/ORDO/Orphanet_88991"
+    "id": "http://www.orpha.net/ORDO/Orphanet_88991",
+    "source_name": "ClinVar name of a mock trait"
   },
   "evidence": {
     "gene2variant": {
@@ -126,8 +127,10 @@
   "unique_association_fields": {
     "alleleOrigin": "germline",
     "clinvarAccession": "RCV000002127",
+    "functional_consequence": "http://purl.obolibrary.org/obo/SO_0001583",
     "gene": "ENSG00000139988",
     "phenotype": "http://www.orpha.net/ORDO/Orphanet_88991",
+    "phenotype_source_name": "ClinVar name of a mock trait",
     "variant_id": "rs28940313"
   },
   "validated_against_schema_version": "1.6.6",
