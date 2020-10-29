@@ -2,10 +2,10 @@
 
 import argparse
 from collections import Counter
-import gzip
 import re
 import sys
-import xml.etree.ElementTree as ElementTree
+
+import eva_cttv_pipeline.clinvar_xml_utils as clinvar_xml_utils
 
 SIG_STARS = {
     'practice guideline': 4,
@@ -63,18 +63,8 @@ all_clinical_significance_levels = set()
 # the tree because we don't need it anymore.
 
 elements_processed = 0
-for event, elem in ElementTree.iterparse(gzip.open(args.clinvar_xml)):
-
-    # Wait until we have built a complete ClinVarSet element. Skip
-    if elem.tag != 'ClinVarSet':
-        continue
-
-    # Go to a ReferenceClinVarAssertion element. This corresponds to a single RCV record, the main unit of ClinVar.
-    # There should only be one such record per ClinVarSet.
-    rcv_records = elem.findall('ReferenceClinVarAssertion')
-    assert len(rcv_records) == 1, 'Found multiple RCV records per ClinVarSet'
-    rcv = rcv_records[0]
-    rcv_id = 'RCV{:09}'.format(int(rcv.attrib['ID']))
+for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
+    rcv_id = 'RCV{:09}'.format(int(rcv.attrib['ID']))  # FIXME FIXME FIXME WRONG
 
     # RCV can contain either a MeasureSet, or a GenotypeSet. It must not contain both.
     measure_sets = rcv.findall('MeasureSet')
@@ -129,6 +119,7 @@ for event, elem in ElementTree.iterparse(gzip.open(args.clinvar_xml)):
                 add_transitions(inheritance_mode_transitions, (
                     'ModeOfInheritance present', mode_of_inheritance
                 ))
+
     elif len(measure_sets) == 0 and len(genotype_sets) == 1:
         # RCV directly contains one genotype set.
         genotype_set = genotype_sets[0]
@@ -143,9 +134,6 @@ for event, elem in ElementTree.iterparse(gzip.open(args.clinvar_xml)):
         allele_origins_count = 'Single allele origin' if len(allele_origins) == 1 else 'Multiple allele origins'
         allele_origins_text = ','.join(sorted(allele_origins))
         add_transitions(allele_origin_transitions, ('RCV', allele_origins_count, allele_origins_text))
-
-    # Remove the processed element from the tree to save memory
-    elem.clear()
 
     # Track the number of already processed elements
     elements_processed += 1
