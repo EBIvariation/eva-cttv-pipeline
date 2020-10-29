@@ -9,17 +9,17 @@ Before running, set up the environment:
 # Create directories for data processing
 mkdir -p ${CURATION_RELEASE_ROOT}
 
-# Download the latest ClinVar variant summary data
+# Download the latest ClinVar XML release
 wget -q \
   --directory-prefix ${CURATION_RELEASE_ROOT} \
-  ${CLINVAR_PATH_BASE}/tab_delimited/variant_summary.txt.gz
+  https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xml/ClinVarFullRelease_00-latest.xml.gz
 
 # Run the trait mapping pipeline
 cd ${CODE_ROOT} && ${BSUB_CMDLINE} -K -M 12G \
   -o ${CURATION_RELEASE_ROOT}/log.trait_mapping.out \
   -e ${CURATION_RELEASE_ROOT}/log.trait_mapping.err \
   python3 bin/trait_mapping.py \
-  -i ${CURATION_RELEASE_ROOT}/variant_summary.txt.gz \
+  -i ${CURATION_RELEASE_ROOT}/ClinVarFullRelease_00-latest.xml.gz \
   -o ${CURATION_RELEASE_ROOT}/automated_trait_mappings.tsv \
   -c ${CURATION_RELEASE_ROOT}/traits_requiring_curation.tsv
 
