@@ -5,30 +5,20 @@ import json
 import sys
 import os
 from collections import defaultdict
-from time import gmtime, strftime
-from types import SimpleNamespace
 
 import jsonschema
 
-from eva_cttv_pipeline.evidence_string_generation import cellbase_records
+from eva_cttv_pipeline import clinvar_xml_utils, file_utils
 from eva_cttv_pipeline.evidence_string_generation import config
 from eva_cttv_pipeline.evidence_string_generation import evidence_strings
-from eva_cttv_pipeline.evidence_string_generation import clinvar
-from eva_cttv_pipeline.evidence_string_generation import utilities
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
-from eva_cttv_pipeline.evidence_string_generation import trait
 
 logger = logging.getLogger(__package__)
 
 
 class Report:
-
-    """
-    Holds counters and other records of a pipeline run. Includes the list of evidence strings
-    generated in the running of the pipeline.
-    Includes method to write to output files, and __str__ shows the summary of the report.
-    One instance of this class is instantiated in the running of the pipeline.
-    """
+    """Holds counters and other records of a pipeline run. Includes method to write to output files, and __str__ shows
+    the summary of the report. One instance of this class is instantiated in the running of the pipeline."""
 
     def __init__(self, trait_mappings=None):
         if trait_mappings is None:
@@ -43,7 +33,6 @@ class Report:
         self.nsv_list = []
         self.unmapped_traits = defaultdict(int)
         self.evidence_string_count = 0
-        self.evidence_list = []  # To store Helen Parkinson records of the form
         self.counters = self.__get_counters()
 
     def __str__(self):
@@ -111,7 +100,7 @@ class Report:
         write_string_list_to_file(self.nsv_list, dir_out + '/' + config.NSV_LIST_FILE)
 
         # Contains traits without a mapping in Gary's xls
-        with utilities.open_file(dir_out + '/' + config.UNMAPPED_TRAITS_FILE_NAME, 'wt') as fdw:
+        with file_utils.open_file(dir_out + '/' + config.UNMAPPED_TRAITS_FILE_NAME, 'wt') as fdw:
             fdw.write('Trait\tCount\n')
             for trait_list in self.unmapped_traits:
                 fdw.write(str(trait_list) + '\t' +
@@ -145,101 +134,96 @@ def validate_evidence_string(ev_string, clinvar_record, trait, ensembl_gene_id, 
     try:
         ev_string.validate(ot_schema_contents)
     except jsonschema.exceptions.ValidationError as err:
-        print('Error: evidence_string does not validate against schema.')
-        print(err)
-        print(json.dumps(ev_string))
-        print('clinvar record:\n%s' % clinvar_record)
-        print('trait:\n%s' % trait)
-        print('ensembl gene id: %s' % ensembl_gene_id)
+        print('Error: evidence string does not validate against schema.')
+        print(f'Error message: {err}')
+        print(f'Complete evidence string: {json.dumps(ev_string)}')
+        print(f'ClinVar record: {clinvar_record}')
+        print(f'ClinVar trait: {trait}')
+        print(f'Ensembl gene ID: {ensembl_gene_id}')
         sys.exit(1)
     except jsonschema.exceptions.SchemaError:
         print('Error: OpenTargets schema file is invalid')
         sys.exit(1)
 
 
-def launch_pipeline(dir_out, efo_mapping_file, snp_2_gene_file, json_file, ot_schema):
-    mappings = get_mappings(efo_mapping_file, snp_2_gene_file)
+def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_schema_file, dir_out):
+    if not os.path.exists(dir_out):
+        os.makedirs(dir_out)
+    string_to_efo_mappings = load_efo_mapping(efo_mapping_file)
+    variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file)
     report = clinvar_to_evidence_strings(
-        mappings, json_file, ot_schema, output_evidence_strings=dir_out + '/' + config.EVIDENCE_STRINGS_FILE_NAME)
+        string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml_file, ot_schema_file,
+        output_evidence_strings=os.path.join(dir_out, config.EVIDENCE_STRINGS_FILE_NAME))
     report.write_output(dir_out)
     print(report)
 
 
-def clinvar_to_evidence_strings(mappings, json_file, ot_schema, output_evidence_strings):
-    report = Report(trait_mappings=mappings.trait_2_efo)
-    cell_recs = cellbase_records.CellbaseRecords(json_file=json_file)
+def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings, clinvar_xml, ot_schema,
+                                output_evidence_strings):
+    report = Report(trait_mappings=string_to_efo_mappings)
     ot_schema_contents = json.loads(open(ot_schema).read())
-    output_evidence_strings_file = utilities.open_file(output_evidence_strings, 'wt')
-    for cellbase_record in cell_recs:
-        report.counters["record_counter"] += 1
-        if report.counters["record_counter"] % 1000 == 0:
-            logger.info("{} records processed".format(report.counters["record_counter"]))
+    output_evidence_strings_file = file_utils.open_file(output_evidence_strings, 'wt')
 
+    logger.info('Processing ClinVar records')
+    for clinvar_record in clinvar_xml_utils.ClinVarDataset(clinvar_xml):
+        report.counters['record_counter'] += 1
+        if report.counters['record_counter'] % 1000 == 0:
+            logger.info('{} records processed'.format(report.counters['record_counter']))
         n_ev_strings_per_record = 0
-        clinvar_record = clinvar.ClinvarRecord(cellbase_record['clinvarSet'])
 
-        for clinvar_record_measure in clinvar_record.measures:
-            report.counters["n_nsvs"] += (clinvar_record_measure.nsv_id is not None)
-            append_nsv(report.nsv_list, clinvar_record_measure)
-            report.counters["n_multiple_allele_origin"] += (len(clinvar_record.allele_origins) > 1)
-            traits = create_traits(clinvar_record.traits, mappings.trait_2_efo, report)
-            converted_allele_origins = convert_allele_origins(clinvar_record.allele_origins)
+        if clinvar_record.measure is None:  # No valid variants to process in this record
+            continue
+        report.counters['n_nsvs'] += (clinvar_record.measure.nsv_id is not None)
+        append_nsv(report.nsv_list, clinvar_record.measure)
+        report.counters['n_multiple_allele_origin'] += (len(clinvar_record.allele_origins) > 1)
+        converted_allele_origins = convert_allele_origins(clinvar_record.allele_origins)
+        for consequence_type, clinvar_trait, allele_origin in itertools.product(
+                get_consequence_types(clinvar_record.measure, variant_to_gene_mappings),
+                clinvar_record.traits,
+                converted_allele_origins):
 
-            for consequence_type, trait, allele_origin in itertools.product(
-                    get_consequence_types(clinvar_record_measure, mappings.consequence_type_dict),
-                    traits,
-                    converted_allele_origins):
+            # Skip records for which crucial information (consequences or EFO mappings) is not available
+            if consequence_type is None:
+                report.counters['no_variant_to_ensg_mapping'] += 1
+                continue
+            if clinvar_trait.name.lower() not in string_to_efo_mappings:
+                report.counters['n_missed_strings_unmapped_traits'] += 1
+                continue
 
-                if consequence_type is None:
-                    report.counters["no_variant_to_ensg_mapping"] += 1
-                    continue
-
+            # Iterate over all EFO mappings (there may be multiple per trait)
+            for ontology_id, ontology_label in string_to_efo_mappings[clinvar_trait.name.lower()]:
                 if allele_origin == 'germline':
                     evidence_string = evidence_strings.CTTVGeneticsEvidenceString(
-                        clinvar_record, clinvar_record_measure, report, trait, consequence_type)
+                        clinvar_record, clinvar_trait, ontology_id, ontology_label, consequence_type)
                 elif allele_origin == 'somatic':
                     evidence_string = evidence_strings.CTTVSomaticEvidenceString(
-                        clinvar_record, clinvar_record_measure, report, trait, consequence_type)
+                        clinvar_record, clinvar_trait, ontology_id, ontology_label, consequence_type)
                 else:
                     raise AssertionError('Unknown allele_origin present in the data: {}'.format(allele_origin))
 
                 # Validate and immediately output the evidence string (not keeping everything in memory)
-                validate_evidence_string(evidence_string, clinvar_record, trait,
+                validate_evidence_string(evidence_string, clinvar_record, clinvar_trait,
                                          consequence_type.ensembl_gene_id, ot_schema_contents)
                 output_evidence_strings_file.write(json.dumps(evidence_string) + '\n')
                 report.evidence_string_count += 1
-
-                report.evidence_list.append([clinvar_record.accession,
-                                             clinvar_record_measure.rs_id,
-                                             trait.clinvar_name,
-                                             trait.ontology_id])
-                report.counters["n_valid_rs_and_nsv"] += (clinvar_record_measure.nsv_id is not None)
-                report.traits.add(trait.ontology_id)
-                report.remove_trait_mapping(trait.clinvar_name)
+                report.counters['n_valid_rs_and_nsv'] += (clinvar_record.measure.nsv_id is not None)
+                report.traits.add(ontology_id)
+                report.remove_trait_mapping(clinvar_trait.name)
                 report.ensembl_gene_id_uris.add(
                     evidence_strings.get_ensembl_gene_id_uri(consequence_type.ensembl_gene_id))
-
                 n_ev_strings_per_record += 1
 
-            if n_ev_strings_per_record > 0:
-                report.counters["n_processed_clinvar_records"] += 1
-                if n_ev_strings_per_record > 1:
-                    report.counters["n_multiple_evidence_strings"] += 1
+        if n_ev_strings_per_record > 0:
+            report.counters['n_processed_clinvar_records'] += 1
+            if n_ev_strings_per_record > 1:
+                report.counters['n_multiple_evidence_strings'] += 1
 
     output_evidence_strings_file.close()
     return report
 
 
-def get_mappings(efo_mapping_file, snp_2_gene_file):
-    mappings = SimpleNamespace()
-    mappings.trait_2_efo = load_efo_mapping(efo_mapping_file)
-    mappings.consequence_type_dict = CT.process_consequence_type_file(snp_2_gene_file)
-    return mappings
-
-
 def get_consequence_types(clinvar_record_measure, consequence_type_dict):
-    """
-    Return the list of functional consequences for a given ClinVar record measure.
+    """Returns the list of functional consequences for a given ClinVar record measure.
 
     This is the place where ClinVar records are paired with the information about gene and functional consequences.
     This information is produced by two pipelines in the `vep-mapping-pipeline` subdirectory:
@@ -252,8 +236,7 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
           functional consequence type.
        c. The "CHROM:POS:REF:ALT" notation is not useful for these variants, because some of them have an indeterminate
           number of repeats, hence there is no single ALT allele.
-       This second pipeline outputs the results using the RCV identifier from ClinVar.
-    """
+       This second pipeline outputs the results using the RCV identifier from ClinVar."""
 
     # As the first option, try to link a variant and its functional consequence by RCV accession. This will only happen
     # for repeat expansion variants, since the main pipeline uses CHROM:POS:REF:ALT identifiers.
@@ -283,35 +266,8 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
     return [None]
 
 
-def create_traits(clinvar_traits, trait_2_efo_dict, report):
-    traits = []
-    for trait_counter, name_list in enumerate(clinvar_traits):
-        new_trait_list = create_trait_list(name_list, trait_2_efo_dict, trait_counter)
-        if new_trait_list:
-            traits.extend(new_trait_list)
-        else:
-            report.counters["n_missed_strings_unmapped_traits"] += 1
-            for name in name_list:
-                report.unmapped_traits[name] += 1
-    return traits
-
-
-def create_trait_list(name_list, trait_2_efo_dict, trait_counter):
-    trait_string, mappings = trait.map_efo(trait_2_efo_dict, name_list)
-    if mappings is None:
-        return None
-    new_trait_list = []
-    for mapping in mappings:
-        new_trait_list.append(trait.Trait(trait_string, mapping[0], mapping[1], trait_counter))
-    # Only ClinVar records associated to a
-    # trait with mapped EFO term will generate evidence_strings
-    if not new_trait_list:
-        return None
-    return new_trait_list
-
-
 def write_string_list_to_file(string_list, filename):
-    with utilities.open_file(filename, 'wt') as out_file:
+    with file_utils.open_file(filename, 'wt') as out_file:
         out_file.write('\n'.join(string_list))
 
 
@@ -326,7 +282,7 @@ def load_efo_mapping(efo_mapping_file):
     trait_2_efo = defaultdict(list)
     n_efo_mappings = 0
 
-    with utilities.open_file(efo_mapping_file, "rt") as f:
+    with file_utils.open_file(efo_mapping_file, "rt") as f:
         for line in f:
             line = line.rstrip()
             if line.startswith("#") or not line:
@@ -345,14 +301,10 @@ def load_efo_mapping(efo_mapping_file):
     return trait_2_efo
 
 
-class UnhandledUrlTypeException(Exception):
-    pass
-
-
 def get_terms_from_file(terms_file_path):
     if terms_file_path is not None:
         print('Loading list of terms...')
-        with utilities.open_file(terms_file_path, 'rt') as terms_file:
+        with file_utils.open_file(terms_file_path, 'rt') as terms_file:
             terms_list = [line.rstrip() for line in terms_file]
         print(str(len(terms_file_path)) + ' terms found at ' + terms_file_path)
     else:
@@ -372,6 +324,3 @@ def convert_allele_origins(orig_allele_origins):
         converted_allele_origins.append("germline")
 
     return converted_allele_origins
-
-
-

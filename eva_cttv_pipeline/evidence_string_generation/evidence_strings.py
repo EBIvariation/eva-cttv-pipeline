@@ -1,11 +1,15 @@
 import copy
 import json
-import re
 
 import jsonschema
 
+from eva_cttv_pipeline import clinvar_xml_utils
+from eva_cttv_pipeline import file_utils
 from eva_cttv_pipeline.evidence_string_generation import config
-from eva_cttv_pipeline.evidence_string_generation import utilities
+
+
+def get_ensembl_gene_id_uri(ensembl_gene_id):
+    return 'http://identifiers.org/ensembl/' + ensembl_gene_id
 
 
 def get_cttv_variant_type(clinvar_record_measure):
@@ -28,50 +32,37 @@ def get_cttv_variant_type(clinvar_record_measure):
     return cttv_variant_type
 
 
-def process_clinical_significance(clin_sig):
-    """
-    Processes ClinVar clinical significance string into a format suitable for OT JSON schema.
-
-    Namely, splits multiple clinical significance levels into an array and normalises names (to lowercase, using only
-    spaces for delimiters). Multiple levels of clinical significance are separated using two delimieters: ('/', ', ').
-    See /clinvar-variant-types/README.md for further explanation. The output array is sorted alphabetically.
-
-    Example: 'Benign/Likely benign, risk_factor' → ['benign', 'likely benign', 'risk factor'].
-    """
-    return sorted(re.split('/|, ', clin_sig.lower().replace('_', ' ')))
-
-
 class CTTVEvidenceString(dict):
-    """
-    Base evidence string class. Holds variables and methods common between somatic and genetic
-    evidence strings.
-    Subclass of dict to use indexing.
-    """
+    """Base evidence string class. Holds variables and methods common between somatic and genetic evidence strings.
+    Subclass of dict to use indexing."""
 
-    def __init__(self, a_dictionary, clinvar_record=None, ref_list=None,
-                 ensembl_gene_id=None, report=None, trait=None):
+    def __init__(self, a_dictionary, clinvar_record, clinvar_trait, ontology_id, ontology_label, ensembl_gene_id):
         super().__init__(a_dictionary)
 
-        if ensembl_gene_id:
-            self.add_unique_association_field('gene', ensembl_gene_id)
-        if clinvar_record:
-            self.add_unique_association_field('clinvarAccession', clinvar_record.accession)
+        # Add unique association fields. When considered together, a tuple of them is intended to be unique to each
+        # evidence string and to be able to serve as a key for querying.
+        self.add_unique_association_field('clinvarAccession', clinvar_record.accession)
+        self.add_unique_association_field('gene', ensembl_gene_id)
+        self.add_unique_association_field('phenotype', ontology_id)
 
-        if ensembl_gene_id:
-            ensembl_gene_id_uri = get_ensembl_gene_id_uri(ensembl_gene_id)
-            self.set_target(ensembl_gene_id_uri)
+        # Populate target information
+        self.set_target(get_ensembl_gene_id_uri(ensembl_gene_id))
 
-        if ref_list and len(ref_list) > 0:
-            self.top_level_literature = ref_list
+        # Populate disease information
+        self.disease_id = ontology_id
+        self.disease_name = ontology_label
+        self.disease_source_name = clinvar_trait.name
 
-        self.disease_id = trait.ontology_id
-        self.add_unique_association_field('phenotype', trait.ontology_id)
+        # Populate literature reference information
+        ref_list = list(set(clinvar_trait.pubmed_refs +             # Trait-specific references
+                            clinvar_record.measure.pubmed_refs +    # Variant-specific references
+                            clinvar_record.observed_pubmed_refs))   # "ObservedIn" references
+        self.full_ref_list = sorted(clinvar_xml_utils.pubmed_refs_to_urls(ref_list))
+        if self.full_ref_list:
+            self.top_level_literature = self.full_ref_list
 
-        if trait.clinvar_name:
-            self.disease_source_name = trait.clinvar_name
-
-        if trait.ontology_label:
-            self.disease_name = trait.ontology_label
+        if len(self.full_ref_list) != len(set(self.full_ref_list)):
+            print('WTF')
 
     def add_unique_association_field(self, key, value):
         self['unique_association_fields'][key] = value
@@ -120,8 +111,7 @@ class CTTVEvidenceString(dict):
 
     @top_level_literature.setter
     def top_level_literature(self, reference_list):
-        self['literature'] = \
-            {'references': [{'lit_id': reference} for reference in reference_list]}
+        self['literature'] = {'references': [{'lit_id': reference} for reference in reference_list]}
 
     def validate(self, ot_schema_contents):
         jsonschema.validate(self, ot_schema_contents, format_checker=jsonschema.FormatChecker())
@@ -129,37 +119,29 @@ class CTTVEvidenceString(dict):
 
 
 class CTTVGeneticsEvidenceString(CTTVEvidenceString):
-    """
-    Class for genetics evidence string specifically.
-    Holds information required for Open Target's evidence strings for genetic information.
-    """
+    """Class for genetics evidence string specifically. Holds information required for Open Target's evidence strings
+    for genetic information."""
 
-    with utilities.open_file(utilities.get_resource_file(__package__, config.GEN_EV_STRING_JSON),
+    with file_utils.open_file(file_utils.get_resource_file(__package__, config.GEN_EV_STRING_JSON),
                              "rt") as gen_json_file:
         base_json = json.load(gen_json_file)
 
-    def __init__(self, clinvar_record, clinvar_record_measure, report, trait, consequence_type):
-
+    def __init__(self, clinvar_record, clinvar_trait, ontology_id, ontology_label, consequence_type):
         a_dictionary = copy.deepcopy(self.base_json)
+        super().__init__(a_dictionary, clinvar_record, clinvar_trait, ontology_id, ontology_label,
+                         consequence_type.ensembl_gene_id)
 
-        ref_list = list(set(clinvar_record.trait_refs_list[trait.trait_counter] +
-                            clinvar_record.observed_refs_list +
-                            clinvar_record_measure.refs_list))
-        ref_list.sort()
-
-        super().__init__(a_dictionary, clinvar_record, ref_list, consequence_type.ensembl_gene_id, report, trait)
-
-        variant_type = get_cttv_variant_type(clinvar_record_measure)
+        variant_type = get_cttv_variant_type(clinvar_record.measure)
 
         self.add_unique_association_field('alleleOrigin', 'germline')
-        if clinvar_record_measure.rs_id:
-            self.set_variant('http://identifiers.org/dbsnp/' + clinvar_record_measure.rs_id,
+        if clinvar_record.measure.rs_id:
+            self.set_variant('http://identifiers.org/dbsnp/' + clinvar_record.measure.rs_id,
                              variant_type)
-            self.add_unique_association_field('variant_id', clinvar_record_measure.rs_id)
-        elif clinvar_record_measure.nsv_id:
-            self.set_variant('http://identifiers.org/dbsnp/' + clinvar_record_measure.nsv_id,
+            self.add_unique_association_field('variant_id', clinvar_record.measure.rs_id)
+        elif clinvar_record.measure.nsv_id:
+            self.set_variant('http://identifiers.org/dbsnp/' + clinvar_record.measure.nsv_id,
                              variant_type)
-            self.add_unique_association_field('variant_id', clinvar_record_measure.nsv_id)
+            self.add_unique_association_field('variant_id', clinvar_record.measure.nsv_id)
         else:
             self.set_variant('http://www.ncbi.nlm.nih.gov/clinvar/' + clinvar_record.accession,
                              variant_type)
@@ -179,17 +161,16 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
             self.gene_2_var_func_consequence = 'http://purl.obolibrary.org/obo/' + \
                                                most_severe_so_term.accession.replace(':', '_')
 
-        if len(ref_list) > 0:
-            self.set_var_2_disease_literature(ref_list)
+        if len(self.full_ref_list) > 0:
+            self.set_var_2_disease_literature(self.full_ref_list)
             # Arbitrarily select only one reference among all
-            self.unique_reference = ref_list[0]
+            self.unique_reference = self.full_ref_list[0]
 
-        if clinvar_record.clinical_significance:
-            self.clinical_significance = process_clinical_significance(clinvar_record.clinical_significance)
+        if clinvar_record.clinical_significance_list:
+            self.clinical_significance = clinvar_record.clinical_significance_list
 
         # Populate star rating and review status
-        star_rating, review_status = clinvar_record.score
-        self.clinvar_rating = (star_rating, review_status)
+        self.clinvar_rating = (clinvar_record.score, clinvar_record.review_status)
 
         # Populate mode of inheritance (if present)
         self.mode_of_inheritance = clinvar_record.mode_of_inheritance
@@ -318,32 +299,24 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
 
 
 class CTTVSomaticEvidenceString(CTTVEvidenceString):
+    """Class for somatic evidence string specifically. Holds information required for Open Target's evidence strings for
+    somatic information."""
 
-    """
-    Class for somatic evidence string specifically.
-    Holds information required for Open Target's evidence strings for somatic information.
-    """
-
-    with utilities.open_file(utilities.get_resource_file(__package__, config.SOM_EV_STRING_JSON),
+    with file_utils.open_file(file_utils.get_resource_file(__package__, config.SOM_EV_STRING_JSON),
                              "rt") as som_json_file:
         base_json = json.load(som_json_file)
 
-    def __init__(self, clinvar_record, clinvar_record_measure, report, trait, consequence_type):
+    def __init__(self, clinvar_record, clinvar_trait, ontology_id, ontology_label, consequence_type):
 
         a_dictionary = copy.deepcopy(self.base_json)
-
-        ref_list = list(set(clinvar_record.trait_refs_list[trait.trait_counter] +
-                            clinvar_record.observed_refs_list +
-                            clinvar_record_measure.refs_list))
-        ref_list.sort()
-
-        super().__init__(a_dictionary, clinvar_record, ref_list, consequence_type.ensembl_gene_id, report, trait)
+        super().__init__(a_dictionary, clinvar_record, clinvar_trait, ontology_id, ontology_label,
+                         consequence_type.ensembl_gene_id)
 
         self.add_unique_association_field('alleleOrigin', 'somatic')
-        if clinvar_record_measure.rs_id:
-            self.add_unique_association_field('variant_id', clinvar_record_measure.rs_id)
-        elif clinvar_record_measure.nsv_id:
-            self.add_unique_association_field('variant_id', clinvar_record_measure.nsv_id)
+        if clinvar_record.measure.rs_id:
+            self.add_unique_association_field('variant_id', clinvar_record.measure.rs_id)
+        elif clinvar_record.measure.nsv_id:
+            self.add_unique_association_field('variant_id', clinvar_record.measure.nsv_id)
         else:
             self.add_unique_association_field('variant_id', clinvar_record.accession)
 
@@ -356,15 +329,14 @@ class CTTVSomaticEvidenceString(CTTVEvidenceString):
 
         self.set_known_mutations(consequence_type.so_term)
 
-        if len(ref_list) > 0:
-            self.evidence_literature = ref_list
+        if len(self.full_ref_list) > 0:
+            self.evidence_literature = self.full_ref_list
 
-        if clinvar_record.clinical_significance:
-            self.clinical_significance = process_clinical_significance(clinvar_record.clinical_significance)
+        if clinvar_record.clinical_significance_list:
+            self.clinical_significance = clinvar_record.clinical_significance_list
 
         # Populate star rating and review status
-        star_rating, review_status = clinvar_record.score
-        self.clinvar_rating = (star_rating, review_status)
+        self.clinvar_rating = (clinvar_record.score, clinvar_record.review_status)
 
         # Populate mode of inheritance (if present)
         self.mode_of_inheritance = clinvar_record.mode_of_inheritance
@@ -464,7 +436,3 @@ class CTTVSomaticEvidenceString(CTTVEvidenceString):
     def mode_of_inheritance(self, mode_of_inheritance):
         if mode_of_inheritance:
             self['evidence']['mode_of_inheritance'] = mode_of_inheritance
-
-
-def get_ensembl_gene_id_uri(ensembl_gene_id):
-    return 'http://identifiers.org/ensembl/' + ensembl_gene_id
