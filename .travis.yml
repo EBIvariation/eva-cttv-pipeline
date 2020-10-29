@@ -16,7 +16,7 @@ install:
 
 script:
   - echo 'Test 1. Main pipeline'
-  - python setup.py install
+  - python3 setup.py install
   - python3 setup.py test
   - cd clinvar-xml-parser && mvn clean test jacoco:report coveralls:report && cd -
 
