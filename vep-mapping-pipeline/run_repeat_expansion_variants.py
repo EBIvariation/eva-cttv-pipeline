@@ -6,8 +6,8 @@ import repeat_expansion_variants.pipeline
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument(
-    '--clinvar-summary-tsv', required=True,
-    help='ClinVar summary TSV dump file (variant_summary.txt.gz)'
+    '--clinvar-xml', required=True,
+    help='ClinVar XML dump file (ClinVarFullRelease_00-latest.xml.gz)'
 )
 parser.add_argument(
     '--output-consequences', required=True,
@@ -18,4 +18,4 @@ parser.add_argument(
     help='File to output full dataframe for subsequent analysis and debugging.'
 )
 args = parser.parse_args()
-repeat_expansion_variants.pipeline.main(args.clinvar_summary_tsv, args.output_consequences, args.output_dataframe)
+repeat_expansion_variants.pipeline.main(args.clinvar_xml, args.output_consequences, args.output_dataframe)

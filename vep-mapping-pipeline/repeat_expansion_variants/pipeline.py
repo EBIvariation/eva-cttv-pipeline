@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """A pipeline to extract repeat expansion variants from ClinVar TSV dump. For documentation refer to README.md"""
 
-import gzip
-from io import StringIO
 import logging
 
 import numpy as np
 import pandas as pd
 
+from eva_cttv_pipeline import clinvar_xml_utils
 from . import biomart, clinvar_identifier_parsing
 
 logging.basicConfig()
@@ -23,24 +22,31 @@ def none_to_nan(*args):
     return [np.nan if a is None else a for a in args]
 
 
-def load_clinvar_data(clinvar_summary_tsv):
+def load_clinvar_data(clinvar_xml):
     """Load ClinVar data, preprocess, and return it as a Pandas dataframe."""
-    # Load and pre-filter the file, using only "NT expansion" variants
-    with gzip.open(clinvar_summary_tsv, 'r') as gzip_stream:
-        repeat_expansion_data = ''.join([
-            line.decode() for i, line in enumerate(gzip_stream)
-            if i == 0 or line.decode().split('\t')[1] == 'NT expansion'
-        ])
-    # Load variants
-    variants = pd.read_table(StringIO(repeat_expansion_data), low_memory=False)
-    # Drop all columns except the ones we require
-    variants = variants[['Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID']]
-    # Records may contain multiple RCVs per row, delimited by semicolon. Here we explode them into separate rows
-    variants['RCVaccession'] = variants['RCVaccession'].str.split(';')
-    variants = variants.explode('RCVaccession')
-    # The same is true for having multiple gene symbols per record, they should also be split
-    variants['GeneSymbol'] = variants['GeneSymbol'].str.split(';')
-    variants = variants.explode('GeneSymbol')
+    # Iterate through ClinVar XML records. Load all Microsatellite variants
+    variant_data = []  # Name, RCVaccession, GeneSymbol, HGNC_ID
+    for i, clinvar_record in enumerate(clinvar_xml_utils.ClinVarDataset(clinvar_xml)):
+        if i % 10000 == 0:
+            logger.info(f'Processed {i} records, have {len(variant_data)} variants')
+        if clinvar_record.measure and clinvar_record.measure.variant_type == 'Microsatellite':
+            # Extract gene symbol(s). Here and below, dashes are sometimes assigned to be compatible with the variant
+            # summary format which was used previously.
+            gene_symbols = clinvar_record.measure.preferred_gene_symbols
+            if not gene_symbols:
+                gene_symbols = ['-']
+            # Extract HGNC ID
+            hgnc_ids = clinvar_record.measure.hgnc_ids
+            hgnc_id = hgnc_ids[0] if len(hgnc_ids) == 1 and len(gene_symbols) == 1 else '-'
+            # Append data strings
+            for gene_symbol in gene_symbols:
+                variant_data.append([
+                    clinvar_record.measure.name,
+                    clinvar_record.accession,
+                    gene_symbol,
+                    hgnc_id
+                ])
+    variants = pd.DataFrame(variant_data, columns=('Name', 'RCVaccession', 'GeneSymbol', 'HGNC_ID'))
     # Since the same record can have coordinates in multiple builds, it can be repeated. Remove duplicates
     variants = variants.drop_duplicates()
     # Sort values by variant name
@@ -122,14 +128,12 @@ def annotate_ensembl_gene_info(variants):
 
 
 def determine_repeat_type(row):
-    """
-    Based on all available information about a variant, determine its type. The resulting type can be:
+    """Based on all available information about a variant, determine its type. The resulting type can be:
         * trinucleotide_repeat_expansion, corresponding to SO:0002165
         * short_tandem_repeat_expansion, corresponding to SO:0002162
         * NaN (not able to determine)
     Also, depending on the information, determine whether the record is complete, i.e., whether it has all necessary
-    fields to be output for the final "consequences" table.
-    """
+    fields to be output for the final "consequences" table."""
     repeat_type = np.nan
     if row['IsProteinHGVS']:
         # For protein HGVS notation, assume that repeat is a trinucleotide one, since it affects entire amino acids
@@ -193,20 +197,18 @@ def generate_output_files(variants, output_consequences, output_dataframe):
     consequences.to_csv(output_consequences, sep='\t', index=False, header=False)
 
 
-def main(clinvar_summary_tsv, output_consequences, output_dataframe):
-    """
-    Process data and generate output files.
+def main(clinvar_xml, output_consequences, output_dataframe):
+    """Process data and generate output files.
 
     Args:
-        clinvar_summary_tsv: filepath to the ClinVar variant summary file.
+        clinvar_xml: filepath to the ClinVar XML file.
         output_consequences: filepath to the output file with variant consequences. The file uses a 6-column format
             compatible with the VEP mapping pipeline (see /vep-mapping-pipeline/README.md).
         output_dataframe: filepath to the output file with the full dataframe used in the analysis. This will contain
-            all relevant columns and can be used for review or debugging purposes.
-    """
+            all relevant columns and can be used for review or debugging purposes."""
 
     logger.info('Load and preprocess variant data')
-    variants = load_clinvar_data(clinvar_summary_tsv)
+    variants = load_clinvar_data(clinvar_xml)
 
     logger.info('Parse variant names and extract information about transcript ID and repeat length')
     variants = variants.apply(lambda row: parse_variant_identifier(row), axis=1)
