@@ -1,51 +1,49 @@
-import json
-import unittest
 from datetime import datetime
+import unittest
 
-import os
 
-from eva_cttv_pipeline.evidence_string_generation import clinvar
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
-from eva_cttv_pipeline.evidence_string_generation import utilities
 from tests.evidence_string_generation import config
 
 
 class TestClinvarRecord(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.test_clinvar_record = get_test_record()
+        cls.test_clinvar_record = config.get_test_clinvar_record()
 
     def test_date(self):
         """Check that the last updated date of the referenceClinVarAssertion is loaded correctly"""
-        self.assertEqual(self.test_clinvar_record.date,
-                         datetime.utcfromtimestamp(1567033200000/1000).isoformat())
+        self.assertEqual(self.test_clinvar_record.date, '2020-09-16')
 
     def test_score(self):
-        self.assertEqual(self.test_clinvar_record.score, (0, 'no assertion criteria provided'))
+        self.assertEqual(self.test_clinvar_record.score, 2)
+
+    def test_review_status(self):
+        self.assertEqual(self.test_clinvar_record.review_status, 'criteria provided, multiple submitters, no conflicts')
 
     def test_acc(self):
-        self.assertEqual(self.test_clinvar_record.accession, "RCV000002127")
+        self.assertEqual(self.test_clinvar_record.accession, 'RCV000002127')
 
     def test_traits(self):
-        self.assertEqual(self.test_clinvar_record.traits, [['Leber congenital amaurosis 13']])
+        self.assertEqual(self.test_clinvar_record.traits[0].name, 'Leber congenital amaurosis 13')
 
     def test_trait_pubmed_refs(self):
-        self.assertEqual(self.test_clinvar_record.trait_pubmed_refs, [[20301475, 20301590, 30285347]])
+        self.assertEqual(self.test_clinvar_record.traits[0].pubmed_refs, [20301475, 20301590, 30285347])
 
     def test_observed_pubmed_refs(self):
         self.assertEqual(self.test_clinvar_record.observed_pubmed_refs, [15258582, 15322982])
 
     def test_clinical_significance(self):
-        self.assertEqual(self.test_clinvar_record.clinical_significance, 'Pathogenic')
+        self.assertEqual(self.test_clinvar_record.clinical_significance_list, ['likely pathogenic', 'pathogenic'])
 
     def test_allele_origins(self):
-        self.assertEqual(self.test_clinvar_record.allele_origins, ['germline'])
+        self.assertEqual(self.test_clinvar_record.allele_origins, {'germline', 'inherited', 'unknown'})
 
 
 class TestClinvarRecordMeasure(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.test_crm = get_test_record().measures[0]
+        cls.test_crm = config.get_test_clinvar_record().measure
         cls.consequence_type_dict = CT.process_consequence_type_file(config.snp_2_gene_file)
 
     def test_hgvs(self):
@@ -59,21 +57,13 @@ class TestClinvarRecordMeasure(unittest.TestCase):
                           'NP_689656.2:p.Tyr226Cys'])
 
     def test_rs(self):
-        self.assertEqual(self.test_crm.rs_id, "rs28940313")
+        self.assertEqual(self.test_crm.rs_id, 'rs28940313')
 
     def test_nsv(self):
         self.assertEqual(self.test_crm.nsv_id, None)
 
     def test_variant_type(self):
-        self.assertEqual(self.test_crm.variant_type, "single nucleotide variant")
+        self.assertEqual(self.test_crm.variant_type, 'single nucleotide variant')
 
     def test_measure_set_pubmed_refs(self):
         self.assertEqual(self.test_crm.pubmed_refs, [])
-
-
-def get_test_record():
-    test_clinvar_record_filepath = os.path.join(os.path.dirname(__file__), 'resources', 'test_clinvar_record.json')
-    with utilities.open_file(test_clinvar_record_filepath, "rt") as f:
-        test_record_dict = json.load(f)
-    test_record = clinvar.ClinvarRecord(test_record_dict)
-    return test_record

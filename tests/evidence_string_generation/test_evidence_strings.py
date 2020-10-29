@@ -5,8 +5,6 @@ import os.path
 from types import SimpleNamespace
 import unittest
 
-from eva_cttv_pipeline.evidence_string_generation import clinvar
-from eva_cttv_pipeline.evidence_string_generation import clinvar_to_evidence_strings
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
 from eva_cttv_pipeline.evidence_string_generation import evidence_strings
 from tests.evidence_string_generation import test_clinvar_to_evidence_strings
@@ -15,17 +13,11 @@ from tests.evidence_string_generation import config
 
 def get_input_data_for_evidence_string_generation():
     """Prepares mock input data necessary for the evidence string generation."""
-    clinvar_record = clinvar.ClinvarRecord(json.load(open(config.test_clinvar_record_file)))
-    report = clinvar_to_evidence_strings.Report()
-
-    trait = SimpleNamespace()
-    trait.trait_counter = 0
-    trait.clinvar_name = ''
-    trait.ontology_id = 'http://www.orpha.net/ORDO/Orphanet_88991'
-    trait.ontology_label = None
-
-    consequence_type = test_clinvar_to_evidence_strings.MAPPINGS.consequence_type_dict['14:67729209:A:G'][0]
-    return clinvar_record, clinvar_record.measures[0], report, trait, consequence_type
+    clinvar_record = config.get_test_clinvar_record()
+    ontology_id = 'http://www.orpha.net/ORDO/Orphanet_88991'
+    ontology_label = 'Rare congenital non-syndromic heart malformation'
+    consequence_type = test_clinvar_to_evidence_strings.GENE_MAPPINGS['14:67729209:A:G'][0]
+    return clinvar_record, clinvar_record.traits[0], ontology_id, ontology_label, consequence_type
 
 
 class GenerateEvidenceStringTest(unittest.TestCase):

@@ -4,97 +4,46 @@ import os
 
 from eva_cttv_pipeline.evidence_string_generation import clinvar_to_evidence_strings
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
-from eva_cttv_pipeline.evidence_string_generation import trait
-from tests.evidence_string_generation import test_clinvar
 from tests.evidence_string_generation import config
 
 
-def _get_mappings():
-    efo_mapping_file = os.path.join(os.path.dirname(__file__), 'resources', 'feb16_jul16_combined_trait_to_url.tsv')
-    mappings = clinvar_to_evidence_strings.get_mappings(efo_mapping_file, config.snp_2_gene_file)
-    return mappings
-
-
-MAPPINGS = _get_mappings()
+EFO_MAPPINGS = clinvar_to_evidence_strings.load_efo_mapping(config.efo_mapping_file)
+GENE_MAPPINGS = CT.process_consequence_type_file(config.snp_2_gene_file)
 
 
 class GetMappingsTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mappings = MAPPINGS
+        cls.efo_mappings = EFO_MAPPINGS
+        cls.gene_mappings = GENE_MAPPINGS
 
     def test_efo_mapping(self):
-        self.assertEqual(len(self.mappings.trait_2_efo), 5283)
+        self.assertEqual(len(self.efo_mappings), 5283)
 
-        self.assertEqual(self.mappings.trait_2_efo["renal-hepatic-pancreatic dysplasia 2"][0],
+        self.assertEqual(self.efo_mappings['renal-hepatic-pancreatic dysplasia 2'][0],
                          ('http://www.orpha.net/ORDO/Orphanet_294415', None))
-        self.assertEqual(self.mappings.trait_2_efo["frontotemporal dementia"][0],
+        self.assertEqual(self.efo_mappings['frontotemporal dementia'][0],
                          ('http://purl.obolibrary.org/obo/HP_0000733', None))
         self.assertEqual(
-            self.mappings.trait_2_efo["3 beta-hydroxysteroid dehydrogenase deficiency"][0],
+            self.efo_mappings['3 beta-hydroxysteroid dehydrogenase deficiency'][0],
             ('http://www.orpha.net/ORDO/Orphanet_90791', None))
 
         self.assertEqual(
-            self.mappings.trait_2_efo["coronary artery disease/myocardial infarction"],
+            self.efo_mappings['coronary artery disease/myocardial infarction'],
             [('http://www.ebi.ac.uk/efo/EFO_0000612', 'myocardial infarction'),
              ('http://www.ebi.ac.uk/efo/EFO_0001645', 'coronary heart disease')])
 
     def test_consequence_type_dict(self):
-        self.assertEqual(len(self.mappings.consequence_type_dict), 21)
+        self.assertEqual(len(self.gene_mappings), 21)
 
-        self.assertTrue("14:67727191:G:A" in self.mappings.consequence_type_dict)
-        self.assertTrue("14:67727197:C:T" in self.mappings.consequence_type_dict)
-        self.assertTrue("14:67729179:T:C" in self.mappings.consequence_type_dict)
-        self.assertTrue("14:67729307:CG:C" in self.mappings.consequence_type_dict)
+        self.assertTrue('14:67727191:G:A' in self.gene_mappings)
+        self.assertTrue('14:67727197:C:T' in self.gene_mappings)
+        self.assertTrue('14:67729179:T:C' in self.gene_mappings)
+        self.assertTrue('14:67729307:CG:C' in self.gene_mappings)
 
-        self.assertFalse("rs0" in self.mappings.consequence_type_dict)
-        self.assertFalse("rs5" in self.mappings.consequence_type_dict)
-        self.assertFalse("rs9" in self.mappings.consequence_type_dict)
-
-
-class CreateTraitTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.trait = clinvar_to_evidence_strings.create_trait_list(
-            ["Ciliary dyskinesia, primary, 7"], MAPPINGS.trait_2_efo, 9)[0]
-
-    def test_clinvar_trait_list(self):
-        self.assertEqual(self.trait.clinvar_name, 'ciliary dyskinesia, primary, 7')
-
-    def test_efo_list(self):
-        self.assertEqual(self.trait.ontology_id, 'http://www.ebi.ac.uk/efo/EFO_0003900')
-
-    def test_multiple_mappings(self):
-        trait1 = trait.Trait("barrett esophagus/esophageal adenocarcinoma",
-                             "http://www.ebi.ac.uk/efo/EFO_0000478",
-                             "esophageal adenocarcinoma", 1)
-        trait2 = trait.Trait("barrett esophagus/esophageal adenocarcinoma",
-                             "http://www.ebi.ac.uk/efo/EFO_0000280",
-                             "Barrett's esophagus", 1)
-
-        test_trait_list = clinvar_to_evidence_strings.create_trait_list(
-            ["barrett esophagus/esophageal adenocarcinoma"], MAPPINGS.trait_2_efo, 1)
-
-        self.assertEqual([trait1, trait2], test_trait_list)
-
-
-    def test_return_none(self):
-        none_trait = clinvar_to_evidence_strings.create_trait_list(["not a real trait"],
-                                                                   MAPPINGS.trait_2_efo, 9)
-        self.assertIsNone(none_trait)
-
-
-class LoadEfoMappingTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        efo_file = \
-            os.path.join(os.path.dirname(__file__), 'resources', 'feb16_jul16_combined_trait_to_url.tsv')
-
-        cls.trait_2_efo = clinvar_to_evidence_strings.load_efo_mapping(efo_file)
-        cls.trait_2_efo_w_ignore = clinvar_to_evidence_strings.load_efo_mapping(efo_file)
-
-    def test_just_mapping_trait_2_efo(self):
-        self.assertEqual(len(self.trait_2_efo), 5283)
+        self.assertFalse('rs0' in self.gene_mappings)
+        self.assertFalse('rs5' in self.gene_mappings)
+        self.assertFalse('rs9' in self.gene_mappings)
 
 
 class GetTermsFromFileTest(unittest.TestCase):
@@ -200,9 +149,9 @@ class TestGetConsequenceTypes(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         # A single example ClinVar record
-        cls.test_crm = test_clinvar.get_test_record().measures[0]
+        cls.test_crm = config.get_test_clinvar_record().measure
         # Example result from the gene & functional consequence mapping pipeline for several variants
-        cls.consequence_type_dict = CT.process_consequence_type_file(config.snp_2_gene_file)
+        cls.consequence_type_dict = GENE_MAPPINGS
 
     def test_get_consequence_types(self):
         self.assertEqual(

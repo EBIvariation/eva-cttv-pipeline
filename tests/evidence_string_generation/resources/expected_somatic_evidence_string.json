@@ -1,17 +1,20 @@
 {
   "access_level": "public",
   "disease": {
-    "id": "http://www.orpha.net/ORDO/Orphanet_88991"
+    "id": "http://www.orpha.net/ORDO/Orphanet_88991",
+    "name": "Rare congenital non-syndromic heart malformation",
+    "source_name": "Leber congenital amaurosis 13"
   },
   "evidence": {
     "clinical_significance": [
+      "likely pathogenic",
       "pathogenic"
     ],
     "clinvar_rating": {
-      "review_status": "no assertion criteria provided",
-      "star_rating": 0
+      "review_status": "criteria provided, multiple submitters, no conflicts",
+      "star_rating": 2
     },
-    "date_asserted": "2019-08-28T23:00:00",
+    "date_asserted": "2020-09-16",
     "evidence_codes": [
       "http://purl.obolibrary.org/obo/ECO_0000205"
     ],
@@ -22,7 +25,7 @@
         "preferred_name": "missense_variant"
       }
     ],
-    "last_evaluated_date": "2004-09-30T23:00:00",
+    "last_evaluated_date": "2019-11-18",
     "provenance_type": {
       "database": {
         "dbxref": {

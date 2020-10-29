@@ -34,22 +34,3 @@ class TestGetZoomaResultsForTrait(unittest.TestCase):
 
         self.assertEqual(zooma.get_zooma_results_for_trait(zooma_response_list),
                          expected_mappings)
-
-
-class TestGetZoomaResults(unittest.TestCase):
-
-    def setUp(self):
-        self.zooma_host = 'https://www.ebi.ac.uk'
-        self.filters = {'ontologies': 'efo,ordo,hp,mondo',
-                        'required': 'cttv,eva-clinvar,clinvar-xrefs,gwas',
-                        'preferred': 'eva-clinvar,cttv,gwas,clinvar-xrefs'}
-
-    def test_get_result_without_ols_label(self):
-        """If OLS does not provide a label for a trait, ZOOMA original label must be used instead."""
-        requested_trait_name = 'Mucopolysaccharidosis type VI'
-        expected_trait_label = 'Mucopolysaccharidosis type 6'
-        zooma_result = zooma.get_zooma_results(requested_trait_name, self.filters, self.zooma_host)
-        self.assertEqual(len(zooma_result), 1)
-        mappings = zooma_result[0].mapping_list
-        self.assertEqual(len(mappings), 3)
-        self.assertIn(expected_trait_label, [m.ontology_label for m in mappings])
