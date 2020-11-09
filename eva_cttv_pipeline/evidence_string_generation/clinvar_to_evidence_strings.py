@@ -147,7 +147,7 @@ def validate_evidence_string(ev_string, clinvar_record, trait, ensembl_gene_id, 
 
 
 def launch_pipeline(clinvar_xml_file, efo_mapping_file, gene_mapping_file, ot_schema_file, dir_out):
-     os.makedirs(dir_out, exist_ok=True)
+    os.makedirs(dir_out, exist_ok=True)
     string_to_efo_mappings = load_efo_mapping(efo_mapping_file)
     variant_to_gene_mappings = CT.process_consequence_type_file(gene_mapping_file)
     report = clinvar_to_evidence_strings(
