@@ -283,9 +283,11 @@ class ClinVarRecordMeasure:
     def sequence_location_helper(self, attr):
         if self.variant_type == 'Translocation':
             # TODO: Translocations have multiple locations and are not supported.
+            # TODO: https://github.com/EBIvariation/eva-opentargets/issues/171
             return None
         sequence_locations = find_elements(self.measure_xml, './SequenceLocation[@Assembly="GRCh38"]')
         if len(sequence_locations) != 1:
             # TODO: Support variants with multiple locations (for example, chrX/chrY).
+            # TODO: https://github.com/EBIvariation/eva-opentargets/issues/172
             return None
         return sequence_locations[0].attrib.get(attr)

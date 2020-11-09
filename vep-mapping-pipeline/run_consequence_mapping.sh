@@ -7,7 +7,7 @@ set -euxo pipefail
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # If you're running on VCF, substitute the first line with: bcftools query "$1" -f '%CHROM:%POS:%REF:%ALT\n'
-python3 "$DIR/extract_variants_for_vep.py" --clinvar-xml "$1" \
+python3 "${DIR}/extract_variants_for_vep.py" --clinvar-xml "$1" \
   | sort -u \
   | parallel \
     --halt now,fail=1    `# If any job fails, kill the remaining ones immediately and report failure`    \

@@ -38,6 +38,7 @@ def write_zooma_record(clinvar_acc, variant_id, trait_name, ontology_uri, date, 
 
 
 def process_clinvar_record(clinvar_record, outfile):
+    """Extract the variant, trait and ontology from Clinvar record and write them as a ZOOMA feedback record."""
     if clinvar_record.measure is None:
         return
     variant_ids = [variant_id

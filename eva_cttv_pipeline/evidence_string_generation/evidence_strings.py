@@ -36,8 +36,8 @@ class CTTVEvidenceString(dict):
     """Base evidence string class. Holds variables and methods common between somatic and genetic evidence strings.
     Subclass of dict to use indexing."""
 
-    def __init__(self, a_dictionary, clinvar_record, clinvar_trait, ontology_id, ontology_label, ensembl_gene_id):
-        super().__init__(a_dictionary)
+    def __init__(self, base_json_dict, clinvar_record, clinvar_trait, ontology_id, ontology_label, ensembl_gene_id):
+        super().__init__(base_json_dict)
 
         # Add unique association fields. When considered together, a tuple of them is intended to be unique to each
         # evidence string and to be able to serve as a key for querying.
@@ -58,11 +58,10 @@ class CTTVEvidenceString(dict):
                             clinvar_record.measure.pubmed_refs +    # Variant-specific references
                             clinvar_record.observed_pubmed_refs))   # "ObservedIn" references
         self.full_ref_list = sorted(clinvar_xml_utils.pubmed_refs_to_urls(ref_list))
+        assert len(self.full_ref_list) != len(set(self.full_ref_list)), \
+            'Duplicate entries in the final list of PubMed references'
         if self.full_ref_list:
             self.top_level_literature = self.full_ref_list
-
-        if len(self.full_ref_list) != len(set(self.full_ref_list)):
-            print('WTF')
 
     def add_unique_association_field(self, key, value):
         self['unique_association_fields'][key] = value
@@ -127,8 +126,8 @@ class CTTVGeneticsEvidenceString(CTTVEvidenceString):
         base_json = json.load(gen_json_file)
 
     def __init__(self, clinvar_record, clinvar_trait, ontology_id, ontology_label, consequence_type):
-        a_dictionary = copy.deepcopy(self.base_json)
-        super().__init__(a_dictionary, clinvar_record, clinvar_trait, ontology_id, ontology_label,
+        base_json_dict = copy.deepcopy(self.base_json)
+        super().__init__(base_json_dict, clinvar_record, clinvar_trait, ontology_id, ontology_label,
                          consequence_type.ensembl_gene_id)
 
         variant_type = get_cttv_variant_type(clinvar_record.measure)
@@ -308,8 +307,8 @@ class CTTVSomaticEvidenceString(CTTVEvidenceString):
 
     def __init__(self, clinvar_record, clinvar_trait, ontology_id, ontology_label, consequence_type):
 
-        a_dictionary = copy.deepcopy(self.base_json)
-        super().__init__(a_dictionary, clinvar_record, clinvar_trait, ontology_id, ontology_label,
+        base_json_dict = copy.deepcopy(self.base_json)
+        super().__init__(base_json_dict, clinvar_record, clinvar_trait, ontology_id, ontology_label,
                          consequence_type.ensembl_gene_id)
 
         self.add_unique_association_field('alleleOrigin', 'somatic')

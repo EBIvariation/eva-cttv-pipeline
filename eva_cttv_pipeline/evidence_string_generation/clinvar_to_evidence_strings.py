@@ -72,7 +72,7 @@ class Report:
              for alleleOrigin in self.n_unrecognised_allele_origin])
 
         report_strings.extend([
-            str(self.counters["no_variant_to_ensg_mapping"]) +
+            str(self.counters["n_no_variant_to_ensg_mapping"]) +
             ' ClinVar records with allowed clinical significance and valid rs id ' +
             'were skipped due to a lack of Variant->ENSG mapping.',
             str(self.counters["n_missed_strings_unmapped_traits"]) +
@@ -118,7 +118,7 @@ class Report:
                 "n_multiple_allele_origin": 0,
                 "n_germline_somatic": 0,
                 "n_records_no_recognised_allele_origin": 0,
-                "no_variant_to_ensg_mapping": 0,
+                "n_no_variant_to_ensg_mapping": 0,
                 "n_more_than_one_efo_term": 0,
                 "n_same_ref_alt": 0,
                 "n_missed_strings_unmapped_traits": 0,
@@ -134,15 +134,15 @@ def validate_evidence_string(ev_string, clinvar_record, trait, ensembl_gene_id, 
     try:
         ev_string.validate(ot_schema_contents)
     except jsonschema.exceptions.ValidationError as err:
-        print('Error: evidence string does not validate against schema.')
-        print(f'Error message: {err}')
-        print(f'Complete evidence string: {json.dumps(ev_string)}')
-        print(f'ClinVar record: {clinvar_record}')
-        print(f'ClinVar trait: {trait}')
-        print(f'Ensembl gene ID: {ensembl_gene_id}')
+        logger.error('Error: evidence string does not validate against schema.')
+        logger.error(f'Error message: {err}')
+        logger.error(f'Complete evidence string: {json.dumps(ev_string)}')
+        logger.error(f'ClinVar record: {clinvar_record}')
+        logger.error(f'ClinVar trait: {trait}')
+        logger.error(f'Ensembl gene ID: {ensembl_gene_id}')
         sys.exit(1)
     except jsonschema.exceptions.SchemaError:
-        print('Error: OpenTargets schema file is invalid')
+        logger.error('Error: OpenTargets schema file is invalid')
         sys.exit(1)
 
 
@@ -184,7 +184,7 @@ def clinvar_to_evidence_strings(string_to_efo_mappings, variant_to_gene_mappings
 
             # Skip records for which crucial information (consequences or EFO mappings) is not available
             if consequence_type is None:
-                report.counters['no_variant_to_ensg_mapping'] += 1
+                report.counters['n_no_variant_to_ensg_mapping'] += 1
                 continue
             if clinvar_trait.name.lower() not in string_to_efo_mappings:
                 report.counters['n_missed_strings_unmapped_traits'] += 1

@@ -64,7 +64,9 @@ all_clinical_significance_levels = set()
 
 elements_processed = 0
 for rcv in clinvar_xml_utils.iterate_rcv_from_xml(args.clinvar_xml):
-    rcv_id = 'RCV{:09}'.format(int(rcv.attrib['ID']))  # FIXME FIXME FIXME WRONG
+    # TODO: use clinvar_xml_utils abstractions instead of working with XML directly
+    # TODO: https://github.com/EBIvariation/eva-opentargets/issues/170
+    rcv_id = rcv.find('./ClinVarAccession').attrib['Acc']
 
     # RCV can contain either a MeasureSet, or a GenotypeSet. It must not contain both.
     measure_sets = rcv.findall('MeasureSet')
