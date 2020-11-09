@@ -13,18 +13,19 @@ logger.setLevel(logging.INFO)
 
 def iterate_rcv_from_xml(clinvar_xml):
     """Iterates through ClinVar XML (possibly gzipped) and yields complete <ReferenceClinVarAssertion> records."""
-    for event, elem in ElementTree.iterparse(open_file(clinvar_xml, 'rt')):
-        # Wait until we have built a complete ClinVarSet element
-        if elem.tag != 'ClinVarSet':
-            continue
+    with open_file(clinvar_xml, 'rt') as fh:
+        for event, elem in ElementTree.iterparse(fh):
+            # Wait until we have built a complete ClinVarSet element
+            if elem.tag != 'ClinVarSet':
+                continue
 
-        # Go to a ReferenceClinVarAssertion element. This corresponds to a single RCV record, the main unit of
-        # ClinVar. There should only be one such record per ClinVarSet.
-        rcv = find_mandatory_unique_element(elem, 'ReferenceClinVarAssertion')
+            # Go to a ReferenceClinVarAssertion element. This corresponds to a single RCV record, the main unit of
+            # ClinVar. There should only be one such record per ClinVarSet.
+            rcv = find_mandatory_unique_element(elem, 'ReferenceClinVarAssertion')
 
-        # Return the complete record and then remove the processed element from the tree to save memory
-        yield rcv
-        elem.clear()
+            # Return the complete record and then remove the processed element from the tree to save memory
+            yield rcv
+            elem.clear()
 
 
 def find_elements(node, xpath, allow_zero=True, allow_multiple=True):
