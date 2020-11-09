@@ -59,7 +59,7 @@ class CTTVEvidenceString(dict):
                             clinvar_record.observed_pubmed_refs))   # "ObservedIn" references
         self.full_ref_list = sorted(clinvar_xml_utils.pubmed_refs_to_urls(ref_list))
         assert len(self.full_ref_list) != len(set(self.full_ref_list)), \
-            'Duplicate entries in the final list of PubMed references'
+            f'Duplicate entries in the final list of PubMed references: {self.full_ref_list}'
         if self.full_ref_list:
             self.top_level_literature = self.full_ref_list
 
