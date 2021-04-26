@@ -3,7 +3,7 @@ import unittest
 from collections import defaultdict
 
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
-from tests.evidence_string_generation import config
+from tests.eva_cttv_pipeline.evidence_string_generation import config
 
 
 class ProcessGeneTest(unittest.TestCase):

@@ -3,7 +3,7 @@ import unittest
 import requests_mock
 
 import eva_cttv_pipeline.trait_mapping.ols as ols
-import tests.trait_mapping.resources.test_ols_data as test_ols_data
+import tests.eva_cttv_pipeline.trait_mapping.resources.test_ols_data as test_ols_data
 
 
 class TestGetTraitNames(unittest.TestCase):

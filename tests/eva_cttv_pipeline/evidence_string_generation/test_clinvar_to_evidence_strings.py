@@ -6,7 +6,7 @@ import requests
 
 from eva_cttv_pipeline.evidence_string_generation import clinvar_to_evidence_strings
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
-from tests.evidence_string_generation import config
+from tests.eva_cttv_pipeline.evidence_string_generation import config
 
 
 EFO_MAPPINGS = clinvar_to_evidence_strings.load_efo_mapping(config.efo_mapping_file)

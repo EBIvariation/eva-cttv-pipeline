@@ -3,7 +3,7 @@ import unittest
 import requests_mock
 
 import eva_cttv_pipeline.trait_mapping.oxo as oxo
-import tests.trait_mapping.resources.test_oxo_data as test_oxo_data
+import tests.eva_cttv_pipeline.trait_mapping.resources.test_oxo_data as test_oxo_data
 
 
 class TestUriToOxoFormat(unittest.TestCase):

@@ -2,16 +2,10 @@
 """Tests for the repeat expansion pipeline. Test resources are compressed XML files which contain one or a few records
 manually extracted from the main ClinVar XML to check specific cases."""
 
-
-import gzip
-from io import BytesIO
 import os
-import pandas
-import pandas.testing
-import pytest
 import tempfile
 
-from repeat_expansion_variants import pipeline
+from consequence_prediction.repeat_expansion_variants import pipeline
 
 
 def get_test_resource(resource_name):
