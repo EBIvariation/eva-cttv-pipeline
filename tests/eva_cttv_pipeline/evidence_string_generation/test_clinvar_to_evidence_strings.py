@@ -180,3 +180,6 @@ class GenerateEvidenceStringTest(unittest.TestCase):
         evidence_string = json.dumps(evidence, sort_keys=True, indent=2)
         expected_evidence_string = open(config.expected_somatic_evidence_string).read()
         self.assertEqual(evidence_string, expected_evidence_string)
+
+    def test_group_diseases_by_efo_mapping(self):
+        pass  # TODO

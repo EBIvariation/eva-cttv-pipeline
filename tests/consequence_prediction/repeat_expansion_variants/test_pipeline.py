@@ -70,3 +70,12 @@ def test_no_explicit_coordinates():
         # NM_023067.3(FOXL2):c.661GCN[15_24] (p.Ala221[(15_24)]) should be parsed as a trinucleotide expansion
         ['RCV000192035', '1', 'ENSG00000183770', 'FOXL2', 'trinucleotide_repeat_expansion', '0'],
     ]
+
+
+def test_alternative_identifiers():
+    assert sorted(run_pipeline('alternatives.xml.gz')) == sorted([
+        # NP_003915.2:p.Ala260(5_9) is protein hgvs and assumed to be trinucleotide expansion
+        ['RCV000006377', '1', 'ENSG00000109132', 'PHOX2B', 'trinucleotide_repeat_expansion', '0'],
+        # ATXN2, (CAG)n REPEAT EXPANSION is inferred to be trinucleotide from the repeat unit length
+        ['RCV000008583', '1', 'ENSG00000204842', 'ATXN2', 'trinucleotide_repeat_expansion', '0']
+    ])
