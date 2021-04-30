@@ -3,7 +3,9 @@ import unittest
 import json
 import os
 import requests
+import xml.etree.ElementTree as ElementTree
 
+from eva_cttv_pipeline.clinvar_xml_utils import ClinVarTrait
 from eva_cttv_pipeline.evidence_string_generation import clinvar_to_evidence_strings
 from eva_cttv_pipeline.evidence_string_generation import consequence_type as CT
 from tests.eva_cttv_pipeline.evidence_string_generation import config
@@ -181,5 +183,61 @@ class GenerateEvidenceStringTest(unittest.TestCase):
         expected_evidence_string = open(config.expected_somatic_evidence_string).read()
         self.assertEqual(evidence_string, expected_evidence_string)
 
-    def test_group_diseases_by_efo_mapping(self):
-        pass  # TODO
+
+class GroupDiseasesByMappingTest(unittest.TestCase):
+    """Verifies behaviour of group_diseases_by_efo_mapping"""
+
+    def setUp(self):
+        self.string_to_efo_mappings = {
+            'disease a': [('EFO_1', 'Term 1')],
+            'disease b': [('EFO_1', 'Term 1')],
+            'disease c': [('EFO_1', 'Term 1')],
+            'disease d': [('EFO_2', 'Term 2'), ('EFO_3', 'Term 3')]
+        }
+
+    @staticmethod
+    def get_trait(name, medgen):
+        """Return ClinVarTrait with given name and medgen id"""
+        # template for trait xml that allows name and medgen id to be inserted
+        trait_xml_template = f'''
+        <Trait ID="123" Type="Disease">
+            <Name>
+                <ElementValue Type="Preferred">{name}</ElementValue>
+            </Name>
+            <XRef ID="{medgen}" DB="MedGen" />
+        </Trait>
+        '''
+        return ClinVarTrait(trait_xml=ElementTree.fromstring(trait_xml_template), clinvar_record=None)
+
+    def test_multiple_diseases_mapped_to_one_term(self):
+        # Diseases mapped to same EFO term should be grouped together,
+        # and the lexicographically first one returned.
+        trait_a = self.get_trait('Disease A', 'MedGen_A')
+        trait_b = self.get_trait('Disease B', 'MedGen_B')
+        trait_c = self.get_trait('Disease C', 'MedGen_C')
+        expected_result = [('Disease A', 'MedGen_A', 'EFO_1')]
+        result = clinvar_to_evidence_strings.group_diseases_by_efo_mapping(
+            clinvar_record_traits=[trait_b, trait_c, trait_a],
+            string_to_efo_mappings=self.string_to_efo_mappings,
+        )
+        self.assertEqual(result, expected_result)
+
+    def test_one_disease_mapped_to_multiple_terms(self):
+        # One disease mapped to multiple terms should be split.
+        trait_d = self.get_trait('Disease D', 'MedGen_D')
+        expected_result = [('Disease D', 'MedGen_D', 'EFO_2'), ('Disease D', 'MedGen_D', 'EFO_3')]
+        result = clinvar_to_evidence_strings.group_diseases_by_efo_mapping(
+            clinvar_record_traits=[trait_d],
+            string_to_efo_mappings=self.string_to_efo_mappings,
+        )
+        self.assertEqual(result, expected_result)
+
+    def test_disease_without_mapping(self):
+        # Diseases without mappings should be skipped.
+        trait_e = self.get_trait('Disease E', 'MedGen_E')
+        expected_result = []
+        result = clinvar_to_evidence_strings.group_diseases_by_efo_mapping(
+            clinvar_record_traits=[trait_e],
+            string_to_efo_mappings=self.string_to_efo_mappings,
+        )
+        self.assertEqual(result, expected_result)
