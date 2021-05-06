@@ -115,7 +115,7 @@ def extract_consequences(vep_results, acceptable_biotypes, only_closest, results
 
         # Return a subset of fields (required for output) of filtered consequences
         results_by_variant[variant_identifier].extend([
-            (variant_identifier, c['gene_id'], c['gene_symbol'], most_severe_consequence_term,
+            (variant_identifier, c['gene_id'], c.get('gene_symbol', ''), most_severe_consequence_term,
              c.get('distance', 0) if report_distance else 0)
             for c in consequences
         ])
