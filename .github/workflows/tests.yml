@@ -40,5 +40,7 @@ jobs:
         python -m pip install --editable .
         python -m pytest
     - name: Run the coverall
+      env: 
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         coveralls
