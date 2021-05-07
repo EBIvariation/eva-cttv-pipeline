@@ -29,23 +29,16 @@ jobs:
         # Executing the main pipeline 
         python setup.py install
         python setup.py test
-    - name: Test 2. VEP mapping pipeline
-      run: |
-        cd vep-mapping-pipeline
-        bash run_consequence_mapping.sh vep_mapping_pipeline/test/input.xml.gz output_mappings.tsv
-        diff vep_mapping_pipeline/test/output_mappings.tsv output_mappings.tsv
+    #- name: Test 2. VEP mapping pipeline
+    #  run: |
+    #    cd vep-mapping-pipeline
+    #    bash run_consequence_mapping.sh vep_mapping_pipeline/test/input.xml.gz output_mappings.tsv
+    #    diff vep_mapping_pipeline/test/output_mappings.tsv output_mappings.tsv
     - name: Test 3. Repeat expansion pipeline
       run: |
         cd vep-mapping-pipeline
         python -m pip install --editable .
         python -m pytest
-    
-  coveralls:
-
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:  
     - name: Run the coverall
       run: |
         coveralls
