@@ -255,7 +255,7 @@ def get_consequence_types(clinvar_record_measure, consequence_type_dict):
     """Returns the list of functional consequences for a given ClinVar record measure.
 
     This is the place where ClinVar records are paired with the information about gene and functional consequences.
-    This information is produced by two pipelines in the `vep-mapping-pipeline` subdirectory:
+    This information is produced by two pipelines in the `consequence_prediction` subdirectory:
     1. The main one, `vep_mapping_pipeline`, runs all records in the ClinVar VCF dump through Variant Effect Predictor
        and outputs the results using a VCF-compatible "CHROM:POS:REF:ALT" identifier.
     2. The auxiliary one, `repeat_expansion_variants`, uses a different approach to extract information about repeat

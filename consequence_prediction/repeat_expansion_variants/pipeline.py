@@ -238,7 +238,7 @@ def main(clinvar_xml, output_consequences, output_dataframe):
     Args:
         clinvar_xml: filepath to the ClinVar XML file.
         output_consequences: filepath to the output file with variant consequences. The file uses a 6-column format
-            compatible with the VEP mapping pipeline (see /vep-mapping-pipeline/README.md).
+            compatible with the VEP mapping pipeline (see /consequence_prediction/README.md).
         output_dataframe: filepath to the output file with the full dataframe used in the analysis. This will contain
             all relevant columns and can be used for review or debugging purposes."""
 

@@ -49,7 +49,7 @@ cd ${CODE_ROOT}
 ${BSUB_CMDLINE} -K \
   -o ${BATCH_ROOT}/logs/consequence_repeat_expansion.out \
   -e ${BATCH_ROOT}/logs/consequence_repeat_expansion.err \
-  python3 ${CODE_ROOT}/vep-mapping-pipeline/run_repeat_expansion_variants.py \
+  python3 ${CODE_ROOT}/consequence_prediction/run_repeat_expansion_variants.py \
     --clinvar-xml         ${BATCH_ROOT}/clinvar/ClinVarFullRelease_00-latest.xml.gz \
     --output-consequences ${BATCH_ROOT}/gene_mapping/consequences_1_repeat.tsv \
     --output-dataframe    ${BATCH_ROOT}/gene_mapping/repeat_dataframe.tsv
@@ -58,7 +58,7 @@ ${BSUB_CMDLINE} -K \
 ${BSUB_CMDLINE} -K -M 10G \
   -o ${BATCH_ROOT}/logs/consequence_vep.out \
   -e ${BATCH_ROOT}/logs/consequence_vep.err \
-  bash ${CODE_ROOT}/vep-mapping-pipeline/run_consequence_mapping.sh \
+  bash ${CODE_ROOT}/consequence_prediction/run_consequence_mapping.sh \
     ${BATCH_ROOT}/clinvar/ClinVarFullRelease_00-latest.xml.gz \
     ${BATCH_ROOT}/gene_mapping/consequences_2_vep.tsv
 
