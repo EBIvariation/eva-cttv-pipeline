@@ -79,9 +79,8 @@ ${BSUB_CMDLINE} -K -M 10G \
     --ot-schema    ${BATCH_ROOT}/evidence_strings/opentargets-${OT_SCHEMA_VERSION}.json \
     --out          ${BATCH_ROOT}/evidence_strings/
 
-# Check that the generated evidence strings do not contain any duplicates
-sort ${BATCH_ROOT}/evidence_strings/evidence_strings.json | uniq -c | awk '$1 > 1' > \
-  ${BATCH_ROOT}/evidence_strings/duplicates.json
+# Check that the generated evidence strings do not contain any duplicated evidence strings (fields: datatypeId, studyId, targetFromSourceId, variantFunctionalConsequenceId and diseaseFromSourceMappedId)
+grep -oP '(?<=(datatypeId\"\: ")|(studyId\"\: ")|(targetFromSourceId\"\: ")|(variantFunctionalConsequenceId\"\: ")|(diseaseFromSourceMappedId\"\: \"))[^\"]*' ${BATCH_ROOT}/evidence_strings/evidence_strings.json | paste - - - - - | sort | uniq -d > ${BATCH_ROOT}/evidence_strings/duplicates.json
 
 # Convert MedGen and OMIM cross-references into ZOOMA format.
 ${BSUB_CMDLINE} -K \
@@ -96,6 +95,14 @@ ${BSUB_CMDLINE} -K \
 
 ### Check that generated evidence strings do not contain any duplicates
 The algorithm used for generating the evidence strings should not allow any duplicate values to be emitted, and the file `${BATCH_ROOT}/evidence_strings/duplicates.json` should be empty. Check that this is the case.
+
+A repeated evidence string will have identical values for these five fields:
+* **datatypeId** - Identifier of the type of data we are associating, varying between somatic and non-somatic ClinVar records (*e.g.* ``somatic_mutation`` or ``genetic_association`` respectively). 
+* **studyId** - Reference ClinVar record (*e.g.* ``RCV000015714``).
+* **targetFromSourceId** - The gene affected by the variant (*e.g.* ``ENSG00000186832``). 
+* **variantFunctionalConsequenceId** - The consequence of such variant (*e.g.* ``SO_0001818``, which corresponds to protein_altering_variant). 
+* **diseaseFromSourceMappedId** - Associated phenotype to such variant (*e.g.* ``Orphanet_2337``, which corresponds to a type of keratoderma). 
+
 
 ### Update summary metrics
 After the evidence strings have been generated, summary metrics need to be updated in the Google Sheets [table](https://docs.google.com/spreadsheets/d/1g_4tHNWP4VIikH7Jb0ui5aNr0PiFgvscZYOe69g191k/) on the “Raw statistics” sheet.
